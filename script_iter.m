@@ -8,8 +8,8 @@ if ~exist(dir_folder, 'dir')
 end
 
 % Array of gain, T:
-gain_arr = 0:5:5 ;
-T_arr = 0:0.1:0.1 ;
+gain_arr = 0:5:30 ;
+T_arr = 0:0.1:1 ;
 
 total = numel(gain_arr)*numel(T_arr) ;
 

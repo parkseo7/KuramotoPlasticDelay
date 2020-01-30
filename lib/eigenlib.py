@@ -72,7 +72,7 @@ def M2(Omega, tauE, Delta):
     for i in range(N):
         M2_mat[i][i*N:(i+1)*N] = cos_M[i]
     
-    return M2_mat
+    return -1*M2_mat
 
 
 def M3(N):
@@ -90,7 +90,7 @@ def M3(N):
             M3_mat[i*N + j, j] = 1
             M3_mat[i*N + j, i] -= 1
     
-    return M3_mat
+    return -1*M3_mat
 
     
 if __name__ == '__main__':
