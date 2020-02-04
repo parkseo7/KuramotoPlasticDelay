@@ -39,6 +39,36 @@ def R_sum_gauss(u, N_tau, N_x, param, sigma):
     return tau_sum / N_tau
 
 
+# Distance function
+def dists(F_fun, G_fun, interval, steps=20):
+    '''
+    Given two functions F_fun, G_fun: R -> R^N, returns the supremum difference
+    along each co-ordinate between F_fun, G_fun over all t in the closed interval, 
+    computed with uniform steps, and the respective timepoint at which it occurs.
+    '''
+    
+    # Time array
+    t_arr = np.linspace(interval[0], interval[1], num=steps)
+    
+    # Dimension
+    N = F_fun(interval[0]).size
+    # Construct full difference array
+    diff_arr = np.zeros((t_arr.size, N))
+    
+    # Calculate difference at each time point
+    for i in range(t_arr.size):
+        t = t_arr[i]
+        diff_t = np.abs(F_fun(t) - G_fun(t))
+        diff_arr[i] = diff_t
+    
+    # Compute the maximum distances and respective timepoints
+    dist = np.amax(diff_arr, axis=0)
+    dist_k = np.argmax(diff_arr, axis=0)
+    t_dist = t_arr[dist_k]
+        
+    return t_dist, dist
+
+
 # SUPPLEMENTARY FUNCTIONS
 
 def phase_sum(u, tau, N, param, phi_fun):
