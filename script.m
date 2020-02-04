@@ -5,11 +5,11 @@ par.N = 30 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.T = 0.05 ;
-par.gain = 15 ;
+par.gain = 30 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 40 ;
+par.tf = 30 ;
    
 % DDE options
 ddeopts = ddeset() ;
@@ -26,6 +26,7 @@ yp = sol.yp(1:N,:).' ;
 
 tau = sol.y(N+1:end,:).' ;
 taup = sol.yp(N+1:end,:).' ;
+tau0 = sol.tau0 ;
 
 gain = par.gain ;
 omega0 = par.w0 ;
@@ -34,7 +35,7 @@ g = par.g ;
 T = par.T ;
 
 % Set up directory (check if it exists)
-foldername = 'matlab5' ;
+foldername = 'matlab3' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 
@@ -45,5 +46,5 @@ end
 % Save file
 filename = ['sol' num2str(N) '_gain' num2str(gain) '.mat'] ;
 dir_file = fullfile(dir_folder, filename) ;
-save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'N', 'gain', 'omega0', ...
+save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'tau0', 'N', 'gain', 'omega0', ...
     'T', 'g', 'tf')

@@ -11,6 +11,33 @@ from math import pi
 
 # MATRICES
 
+def IM(z, g, gain, Omega, tauE, Delta):
+    '''
+    Given complex number z, with parameter set param, returns the complex 
+    eigenvalue matrix, reduced to N dimensions. 
+    '''
+    
+    # Check if z = -1:
+    if z == -1:
+        return np.zeros((2,2))
+    
+    # SETUP
+    N = Delta.shape[0]
+    
+    # Define matrix entries
+    cos_M = np.cos(-Omega*tauE + Delta)
+    exp_z = g*cos_M*np.exp(-z*tauE) / N
+    
+    scos_M = np.sum(cos_M, axis=1)
+    M_i = (g/N)*(1 - Omega*gain / (z + 1))*np.diag(scos_M)
+    
+    M_ij = (g/N)*(Omega*gain / (z + 1))*cos_M
+    
+    eM = z*np.eye(N) + M_i - exp_z + M_ij 
+    
+    return eM
+
+
 def M(z, g, gain, Omega, tauE, Delta):
     '''
     Given complex number z, with parameter set param, computes the complex 

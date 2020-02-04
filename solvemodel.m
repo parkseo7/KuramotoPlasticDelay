@@ -28,6 +28,7 @@ function sol = solvemodel(par, ddeopts)
     
     % solve
     sol = ddesd(kuraf, tauf, hist_lin, [t0,tf], ddeopts) ;
+    sol.tau0 = tau0 ;
    
 end
 
