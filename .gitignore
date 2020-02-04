@@ -1,0 +1,6 @@
+# Ignore all data files
+data/*
+
+# Except
+!data/matlab1
+!data/export
