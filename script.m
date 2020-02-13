@@ -4,12 +4,12 @@ par = struct ;
 par.N = 30 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
-par.T = 0.1 ;
-par.gain = 35 ;
+par.T = 5.0 ;
+par.gain = 20 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 40 ;
+par.tf = 50 ;
    
 % DDE options
 ddeopts = ddeset() ;
@@ -35,7 +35,7 @@ g = par.g ;
 T = par.T ;
 
 % Set up directory (check if it exists)
-foldername = 'matlab1' ;
+foldername = 'matlab2' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 

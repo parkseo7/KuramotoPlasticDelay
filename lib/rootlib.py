@@ -19,14 +19,14 @@ def find_root(func, x0, a, b, steps=20):
     
     all_roots = root_on_interval(func, a, b, steps=steps)
     if all_roots.size == 0:
-        return x0
+        return (x0, False)
     else:
         root = all_roots[np.argmin(np.abs(all_roots - x0))]
     
     if root.size > 1:
         root = root[0]
     
-    return root
+    return (root, True)
 
 
 def root_on_interval(func, a, b, steps=20):
