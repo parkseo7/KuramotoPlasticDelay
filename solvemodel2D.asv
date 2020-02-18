@@ -1,27 +1,20 @@
-function sol = solvemodel(par, ddeopts)
+function sol = solvemodel2D(par, ddeopts)
 
     % Parameters
-    N = par.N ;
     w0 = par.w0 ;
-    omega = w0*ones(N,1) ;
-    g = par.g ;
-    T = par.T ;
+    omega = w0*[1;1] ;
+    g = par.g/2;
+    
     kappa = par.gain ;
+    tau0 = [0.1;0.1] ;
     alphar = par.alphatau ;
-    inj = par.inj ;
+    
     t0 = par.t0 ;
     tf = par.tf ;
-
-    % frequencies, connections, baseline conduction delays
-    connprob = 1 - inj;
-    a = double(rand(N,N)<connprob);
-    % tau0 = T*ones(N,N);
-    tau0 = 2*T*rand(N,N);
-    A = g/N*a;
     
-    % initial condition (constantly distributed around half-circle at t0)
-    hist_linX = @(t) (pi/N)*(0:N-1) + omega.'*(t - t0) ;
-    % hist_linX = @(t) (pi/N)*(0:N-1) + omega.'*(t - t0) ;
+    % initial condition
+    Delta = pi/4 ;
+    hist_linX = @(t) [0 Delta] + omega.'*(t - t0) ;
     hist_lin = @(t) packX(hist_linX(t), tau0) ;
     
     % Functions
@@ -45,9 +38,10 @@ function [theta, tau, N] = unpackX( X )
     tau = reshape( X(N+1:end), [N,N] );
 end
 
-function dXdt = modelrhs(t,X,Z,omega,A,kappa,alphar,tau0)
-    [theta, tau, N] = unpackX( X );
-    thetadelay = Z(1:N,:);
+function dXdt = modelrhs(X,Z,omega,kappa,alphar,tau0)
+    theta = X(1:2);
+    tau = X(3:4) ;
+    thetadelay = [Z(1,Z(1:2,:);
     thetadelay = reshape(thetadelay(kron(eye(N),ones(1,N))==1),N,N);
     dthetadt = omega + sum( A.*sin( thetadelay - repmat(theta,1,N)), 2);
     dtaudt = alphar*posind(tau).*( -(tau - tau0) + kappa*bsxfun(@minus,theta',theta));

@@ -69,6 +69,29 @@ def dists(F_fun, G_fun, interval, steps=20):
     return t_dist, dist
 
 
+# Fixed-point equation
+def Omega_root(phi1, tau0, param):
+    '''
+    Given an N by N dimensional array of initial delay values, provides the
+    global frequency and phase offset function with phi_1 = 0. Here,
+    phi1 is an N-1 array.
+    '''
+    
+    # Define function
+    gain = param['gain']
+    g = param['g']
+    w0 = param['w0']
+    
+    N = tau0.shape[0]
+    Omega = phi1[0]
+    phi = np.concatenate((np.array([0]), phi1[1:]))
+    Delta = (phi[:,None] - phi).T
+    
+    sin0 = np.sin(-Omega*np.maximum(tau0 + gain*Delta, np.zeros((N,N))) + Delta)
+    
+    return (Omega - w0) - (g/N)*np.sum(sin0, axis=1)
+
+
 # SUPPLEMENTARY FUNCTIONS
 
 def phase_sum(u, tau, N, param, phi_fun):

@@ -11,6 +11,8 @@ from math import pi
 
 # ROOT FINDING LIBRARY
 
+
+# Single-root
 def find_root(func, x0, a, b, steps=20):
     '''
     Finds a root of func with initial guess x0. Utilizes the optimize.root 
