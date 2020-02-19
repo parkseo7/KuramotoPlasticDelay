@@ -136,6 +136,51 @@ def Omega2D_root(u, tau0, param):
     return f
 
 
+def eig2D_poly(z, Omega, Delta, tau0, param):
+    '''
+    Returns the 2x2 determinant complex eigenvalue criterion, in the form of
+    an exponential polynomial. Here, Omega, Delta are (one of the) solutions
+    to the fixed-point equation given by Omega2D. We assume that Delta > 0.
+    '''
+    
+    # Parameters
+    g = param['g']/2
+    w0 = param['omega0']
+    gain = param['gain']
+    
+    # Defined parameters
+    k = Omega*gain
+    C_12 = g*np.cos(-Omega*tau0[0] + (1 - k)*Delta)
+    C_21 = g*np.cos(Delta)
+    
+    # Polynomials
+    P = (z*(z+1) + C_12*(z+1-k))*(z*(z+1) + C_21*(z+1-k)) - C_12*C_21*k*(z+1-k)
+    Q = -C_12*C_21*(z+1)*(z+1-k)
+    E = np.exp(-z*(tau0[0] + k*Delta))
+    
+    return np.array([P, Q, E, P + Q*E, P - Q])
+
+
+def eig2D_quartic(Omega, Delta, tau0, param):
+    '''
+    Returns the coefficients of the quartic polynomial P(z) - Q(z) from the
+    exponential polynomial in our eigenvalue equation.
+    '''
+    
+    # Parameters
+    g = param['g']/2
+    w0 = param['omega0']
+    gain = param['gain']
+    
+    # Defined parameters
+    k = Omega*gain
+    C_12 = g*np.cos(-Omega*tau0[0] + (1 - k)*Delta)
+    C_21 = g*np.cos(Delta)
+    
+    # Coefficients
+    
+
+
 # SUPPLEMENTARY FUNCTIONS
 
 def phase_sum(u, tau, N, param, phi_fun):
@@ -180,6 +225,16 @@ def phase_gauss(u, tau, N, param, sigma):
     return 2*pi*np.sum(N_arr) / N
 
 
+def abs_diff(poly_array):
+    '''
+    Given an array of two polynomial terms, returns the squared absolute 
+    difference.
+    '''
+    
+    P = poly_array[0]
+    Q = poly_array[1]
+    
+    return np.abs(P)**2 - np.abs(Q)**2
 if __name__ == '__main__':
     z = np.random.random(size=(3,4))
     Y = polyval(z, [2,3,4])
