@@ -8,11 +8,11 @@ par.g = 1.5 ;
 par.Delta0 = pi/4;
 
 par.t0 = 0 ;
-par.tf = 60 ;
+par.tf = 300 ;
 
 par.gain = 30 ;
 par.alphatau = 1.0 ;
-par.tau0 = [0.1;0.1];
+par.tau0 = [0.01;0.01];
 
 % DDE options
 ddeopts = ddeset() ;
@@ -30,13 +30,12 @@ tau = sol.y(3:end,:).' ;
 taup = sol.yp(3:end,:).' ;
 
 % Parameters (export)
-
 g = par.g ;
 gain = par.gain ;
 omega0 = par.w0 ;
 
 Delta0 = par.Delta0 ;
-tau0 = par.tau0 ;
+tau0 = par.tau0.' ;
 
 t0 = par.t0 ;
 tf = par.tf ;

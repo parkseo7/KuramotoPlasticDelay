@@ -92,6 +92,50 @@ def Omega_root(phi1, tau0, param):
     return (Omega - w0) - (g/N)*np.sum(sin0, axis=1)
 
 
+# 2D ANALYSIS
+def Omega2D(Omega, tau0, param):
+    '''
+    Determines the fixed-point equations for Omega, Delta, given initial guesses
+    Omega0, Delta0.
+    '''
+    
+    # Parameters
+    g = param['g']/2
+    w0 = param['omega0']
+    gain = param['gain']
+    
+    # Here Delta = Delta_21
+    # tauE = np.maximum(tau0 + gain*np.array([Delta, -Delta]), np.zeros(2))
+    
+    # Delta_fun = lambda u: (u*tau0[1] + np.arcsin((w0 - u)/g))/(1 - gain*u)
+    
+    Delta_fun = lambda u: np.arcsin((w0 - u)/g)
+    
+    # Fixed-point equation for Omega:
+    Omega_fun = lambda u: u - w0 - g*np.sin(-u*tau0[0] + (1 - gain*u)*Delta_fun(u))
+    
+    return Omega_fun(Omega), Delta_fun(Omega)
+
+
+def Omega2D_root(u, tau0, param):
+    '''
+    Returns the 2D system of equations for Omega, Delta_21, to be used with
+    an optimization function in 2-dimensions.
+    '''
+    
+    # Define function
+    gain = param['gain']
+    g = param['g']/2
+    w0 = param['omega0']
+    
+    Omega, Delta = u
+    pmDelta = Delta*np.array([1,-1])
+    sin0 = np.sin(-Omega*np.maximum(tau0 + gain*pmDelta, np.zeros(2)) + pmDelta)
+    
+    f = Omega - w0 - g*sin0
+    return f
+
+
 # SUPPLEMENTARY FUNCTIONS
 
 def phase_sum(u, tau, N, param, phi_fun):
