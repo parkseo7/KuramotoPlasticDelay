@@ -1,4 +1,17 @@
-num = 5;
+% Import all parameters from .mat file
+foldername = 'matlab2D_1' ;
+filename = 'gain_30_num_1.mat' ;
+
+cwd = pwd ;
+dir_folder = fullfile(cwd, 'data', foldername) ;
+dir_file = fullfile(dir_folder, filename) ;
+
+% Save file
+filename = ['gain_' num2str(gain) '_lin_' num2str(num) '.mat'] ;
+dir_file = fullfile(dir_folder, filename) ;
+save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'tau0', 'gain', 'omega0', ...
+    'g', 'tf', 'Delta0')
+
 
 % Parameters
 par = struct ;

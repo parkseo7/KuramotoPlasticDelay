@@ -1,4 +1,4 @@
-function sol = solvemodel2D(par, ddeopts)
+function sol = solvelinear2D(par, ddeopts)
 
     % Parameters
     w0 = par.w0 ;
@@ -6,19 +6,19 @@ function sol = solvemodel2D(par, ddeopts)
     g = par.g/2;
     
     kappa = par.gain ;
-    tau0 = [0.1;0.1] ;
+    tau0 = par.tau0 ; % [0.1;0.1]
     alphar = par.alphatau ;
     
     t0 = par.t0 ;
     tf = par.tf ;
     
     % initial condition
-    Delta = pi/4 ;
-    hist_linX = @(t) [0 Delta] + omega.'*(t - t0) ;
+    Delta0 = par.Delta0;
+    hist_linX = @(t) [0 Delta0] + omega.'*(t - t0) ;
     hist_lin = @(t) packX(hist_linX(t), tau0) ;
     
     % Functions
-    kuraf = @(t,X,Z) modelrhs(t,X,Z,omega,A,kappa,alphar,tau0) ;
+    kuraf = @(t,X,Z) modelrhs(t,X,Z,omega,g,kappa,alphar,tau0) ;
     tauf = @delays ;
     
     % solve
@@ -32,24 +32,18 @@ function X = packX( theta, tau )
     X = [ theta(:) ; tau(:) ];
 end
 
-function [theta, tau, N] = unpackX( X )
-    N = round( 0.5*(sqrt(4*numel(X)+1)-1) );
-    theta = X(1:N);
-    tau = reshape( X(N+1:end), [N,N] );
-end
-
-function dXdt = modelrhs(X,Z,omega,kappa,alphar,tau0)
+function dXdt = modelrhs(t,X,Z,omega,g,kappa,alphar,tau0)
     theta = X(1:2);
-    tau = X(3:4) ;
-    thetadelay = [Z(1,Z(1:2,:);
-    thetadelay = reshape(thetadelay(kron(eye(N),ones(1,N))==1),N,N);
-    dthetadt = omega + sum( A.*sin( thetadelay - repmat(theta,1,N)), 2);
-    dtaudt = alphar*posind(tau).*( -(tau - tau0) + kappa*bsxfun(@minus,theta',theta));
+    tau = X(3:end) ;
+    Delta = [theta(2) - theta(1); theta(1) - theta(2)]; 
+    thetadelay = [Z(2,1); Z(1,2)];
+    dthetadt = omega + g*sin(thetadelay - theta);
+    dtaudt = alphar*posind(tau).*( -(tau - tau0) + kappa*Delta);
     dXdt = packX( dthetadt, dtaudt );
 end
 
 function d = delays(t,X)
-    [~, tau] = unpackX( X );
+    tau = X(3:end);
     d = t - tau(:);
 end
 

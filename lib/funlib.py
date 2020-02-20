@@ -136,6 +136,57 @@ def Omega2D_root(u, tau0, param):
     return f
 
 
+def eig2D_det(z, Omega, Delta, tau0, param):
+    '''
+    Returns the 2x2 determinant complex eigenvalue criterion, in the form of
+    an exponential polynomial. Here, Omega, Delta are (one of the) solutions
+    to the fixed-point equation given by Omega2D. We assume that Delta > 0.
+    '''
+    
+    # Parameters
+    g = param['g']/2
+    w0 = param['omega0']
+    gain = param['gain']    
+    
+    # Defined parameters
+    k = Omega*gain
+    C_12 = g*np.cos(-Omega*tau0[0] + (1 - k)*Delta)
+    C_21 = g*np.cos(Delta)
+    
+    # Polynomials
+    P = (z*(z+1) + C_12*(z+1-k))*(z+C_21) + C_12*C_21*k
+    Q = -C_12*C_21*(z+1)
+    E = np.exp(-z*(tau0[0] + gain*Delta))
+    
+    return np.array([P, Q, E, P + Q*E, P + Q])
+
+
+def eig2D_cubic(Omega, Delta, tau0, param):
+    '''
+    Returns the coefficients of the quartic polynomial P(z) + Q(z) from the
+    exponential polynomial in our eigenvalue equation.
+    '''
+    
+    # Parameters
+    g = param['g']/2
+    w0 = param['omega0']
+    gain = param['gain']
+    
+    # Defined parameters
+    k = Omega*gain
+    C_12 = g*np.cos(-Omega*tau0[0] + (1 - k)*Delta)
+    C_21 = g*np.cos(Delta)
+    C = C_12 + C_21
+    C_2 = C_12*C_21
+    
+    b_3 = 1
+    b_2 = 1 + C_12 + C_21
+    b_1 = C_12*(1-k) + C_21
+    b_0 = 0
+    
+    return np.array([b_3, b_2, b_1, b_0])
+
+
 def eig2D_poly(z, Omega, Delta, tau0, param):
     '''
     Returns the 2x2 determinant complex eigenvalue criterion, in the form of
@@ -154,11 +205,11 @@ def eig2D_poly(z, Omega, Delta, tau0, param):
     C_21 = g*np.cos(Delta)
     
     # Polynomials
-    P = (z*(z+1) + C_12*(z+1-k))*(z*(z+1) + C_21*(z+1-k)) - C_12*C_21*k*(z+1-k)
+    P = (z*(z+1) + C_12*(z+1-k))*(z*(z+1) + C_21*(z+1-k)) + C_12*C_21*k*(z+1-k)
     Q = -C_12*C_21*(z+1)*(z+1-k)
-    E = np.exp(-z*(tau0[0] + k*Delta))
+    E = np.exp(-z*(tau0[0] + gain*Delta))
     
-    return np.array([P, Q, E, P + Q*E, P - Q])
+    return np.array([P, Q, E, P + Q*E, P + Q])
 
 
 def eig2D_quartic(Omega, Delta, tau0, param):
@@ -176,9 +227,17 @@ def eig2D_quartic(Omega, Delta, tau0, param):
     k = Omega*gain
     C_12 = g*np.cos(-Omega*tau0[0] + (1 - k)*Delta)
     C_21 = g*np.cos(Delta)
+    C = C_12 + C_21
+    C_2 = C_12*C_21
     
     # Coefficients
+    b_4 = 1
+    b_3 = 2 + C
+    b_2 = 1 + C*(2-k)
+    b_1 = C*(1-k) + 2*C_2*(1-k) + C_2*k - C_2*(2-k)
+    b_0 = C_2*(1-k)**2 + C_2*k*(1-k) - C_2*(1-k)
     
+    return np.array([b_4, b_3, b_2, b_1, b_0])
 
 
 # SUPPLEMENTARY FUNCTIONS
@@ -225,6 +284,38 @@ def phase_gauss(u, tau, N, param, sigma):
     return 2*pi*np.sum(N_arr) / N
 
 
+def quartic_roots(coeffs):
+    '''
+    Given an array of coefficients (in increasing order of degrees) up to
+    order 4, returns the quartic roots corresponding to the polynomial with
+    the inputted coefficients.
+    '''
+    
+    # Coefficients
+    a,b,c,d,e = coeffs
+
+    # Define p,q
+    p = (8*a*c - 3*b**2) / (8*a**2)
+    q = (b**3 - 4*a*b*c + 8*a**2*d) / (8*a**3)
+    
+    D_0 = c**2 - 3*b*d + 12*a*e
+    D_1 = 2*c**3 - 9*b*c*d + 27*b**2*e + 27*a*d**2 - 72*a*c*e
+    
+    Q = (np.sqrt(D_1 + (D_1**2 - 4*D_0**3), dtype='complex64')/2)**(1/3)
+    S = 0.5*(-2*p/3 + (Q + D_0/Q)/(3*a))**0.5
+    
+    # Roots
+    T_1 = -b/(4*a)
+    T_2 = 0.5*np.sqrt(-4*S**2 - 2*p + q/S, dtype='complex64')
+    
+    x1 = T_1 - S - T_2
+    x2 = T_1 - S + T_2
+    x3 = T_1 + S - T_2
+    x4 = T_1 + S + T_2
+    
+    return np.array([x1,x2,x3,x4])
+
+        
 def abs_diff(poly_array):
     '''
     Given an array of two polynomial terms, returns the squared absolute 
@@ -235,6 +326,8 @@ def abs_diff(poly_array):
     Q = poly_array[1]
     
     return np.abs(P)**2 - np.abs(Q)**2
+
+
 if __name__ == '__main__':
     z = np.random.random(size=(3,4))
     Y = polyval(z, [2,3,4])
