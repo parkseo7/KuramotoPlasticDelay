@@ -15,8 +15,8 @@ function sol = solvemodel(par, ddeopts)
     % frequencies, connections, baseline conduction delays
     connprob = 1 - inj;
     a = double(rand(N,N)<connprob);
-    % tau0 = T*ones(N,N);
-    tau0 = 2*T*rand(N,N);
+    tau0 = T*ones(N,N);
+    % tau0 = 2*T*rand(N,N);
     A = g/N*a;
     
     % initial condition (constantly distributed around half-circle at t0)

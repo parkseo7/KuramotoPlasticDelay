@@ -1,17 +1,19 @@
-trial = 4;
+% Export directory
+foldername = 'matlab1' ;
+trial = 1;
 
 % Parameters
 par = struct ;
 
-par.N = 30 ;
+par.N = 50 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.T = 0.1 ;
-par.gain = 35 ;
+par.gain = 30 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 60 ;
+par.tf = 30 ;
    
 % DDE options
 ddeopts = ddeset() ;
@@ -38,7 +40,6 @@ g = par.g ;
 T = par.T ;
 
 % Set up directory (check if it exists)
-foldername = 'matlab4' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 

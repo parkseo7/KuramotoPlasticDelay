@@ -187,6 +187,165 @@ def eig2D_cubic(Omega, Delta, tau0, param):
     return np.array([b_3, b_2, b_1, b_0])
 
 
+# N-LIMIT ANALYSIS
+def invar_err(Omega, U, N_x, param):
+    '''
+    Evaluate the (approximate) integral giving the error of the invariance
+    criterion. That is, if invar_err = 0, then Omega, U is a plausible
+    synchronization state.
+    '''
+    
+    # Parameters
+    tau0 = param['T']
+    gain = param['gain']
+    
+    # Function to integrate (x = theta)
+    f = lambda x: np.abs(np.sin(-Omega*tau0 + (1-Omega*gain)*(U - x)) + np.sin(x))
+    
+    # Compute Riemann sum
+    x_arr = np.linspace(0,U, num=N_x)
+    err = np.sum(f(x_arr))*U/N_x
+    
+    return err
+
+
+def invar_err2(Omega, L, dist_fun, N, param):
+    '''
+    Sanity check.
+    '''
+    
+    # Parameters
+    tau0 = param['T']
+    gain = param['gain']
+    w0 = param['omega0']
+    g = param['g']
+    
+    phi = np.linspace(0,U)/N
+    phi_diffs = (phi[:,None] - phi).T
+    z0 = np.zeros((N,N))
+    
+    sin_arr = np.sin(-Omega*np.maximum(tau0 + gain*phi_diffs, z0) + phi_diffs)    
+    den_arr = dist_fun(phi)
+    
+    # Summation
+    err = Omega - w0 - g*np.sum(sin_arr, axis=1)/N
+    
+    return err
+
+ 
+def invar_err3(Omega, phi, param):
+    '''
+    Given asymptotic solutions, computes the invariance error.
+    '''
+    
+    # Parameters
+    tau0 = param['T']
+    gain = param['gain']
+    w0 = param['omega0']
+    g = param['g']
+    
+    N = phi.size
+    phi_diffs = (phi[:,None] - phi).T
+    z0 = np.zeros(phi_diffs.shape)
+    sin_arr = np.sin(-Omega*np.maximum(tau0 + gain*phi_diffs, z0) + phi_diffs)    
+    
+    # Summation
+    err = Omega - w0 - g*np.sum(sin_arr, axis=1)/N
+    
+    return err
+
+
+# SUPPLEMENTARY FUNCTIONS
+
+def phase_sum(u, tau, N, param, phi_fun):
+    '''
+    Computes the right-side integral as a double-Riemann sum with N steps,
+    at delay tau, and prediction phi function phi(x)
+    '''
+    
+    w0 = param['omega0']
+    g = param['g']
+    a = param['a']
+    T = param['T']
+    gain = param['gain']
+    
+    x_arr = phi_fun(np.arange(N)/N)
+    N_diffs = (x_arr[:,None] - x_arr).T
+    z0 = np.zeros(N_diffs.shape)
+    N_arr = np.sin(-u*np.maximum(tau + gain*N_diffs, z0) + N_diffs)
+    
+    return np.sum(N_arr) / N**2
+
+
+def phase_gauss(u, tau, N, param, sigma):
+    '''
+    Computes the right-side integral as a double-Riemann sum with N steps,
+    at delay tau, and a Gaussian distribution of differences at mean 0 and
+    variance sigma^2.
+    '''
+    
+    w0 = param['omega0']
+    g = param['g']
+    a = param['a']
+    T = param['T']
+    gain = param['gain']
+    
+    z0 = np.zeros(N)
+    N_diffs = -pi + 2*pi*np.arange(N) / N
+    if sigma == 0:
+        N_arr = np.sin(-u*tau + z0)
+    else:
+        gauss = ((np.sqrt(2*pi)*sigma)**-1)*np.exp(-N_diffs**2 / (2*sigma**2))
+        N_arr = np.sin(-u*np.maximum(tau + gain*N_diffs, z0) + N_diffs)*gauss
+    
+    return 2*pi*np.sum(N_arr) / N
+
+
+def quartic_roots(coeffs):
+    '''
+    Given an array of coefficients (in increasing order of degrees) up to
+    order 4, returns the quartic roots corresponding to the polynomial with
+    the inputted coefficients.
+    '''
+    
+    # Coefficients
+    a,b,c,d,e = coeffs
+
+    # Define p,q
+    p = (8*a*c - 3*b**2) / (8*a**2)
+    q = (b**3 - 4*a*b*c + 8*a**2*d) / (8*a**3)
+    
+    D_0 = c**2 - 3*b*d + 12*a*e
+    D_1 = 2*c**3 - 9*b*c*d + 27*b**2*e + 27*a*d**2 - 72*a*c*e
+    
+    Q = (np.sqrt(D_1 + (D_1**2 - 4*D_0**3), dtype='complex64')/2)**(1/3)
+    S = 0.5*(-2*p/3 + (Q + D_0/Q)/(3*a))**0.5
+    
+    # Roots
+    T_1 = -b/(4*a)
+    T_2 = 0.5*np.sqrt(-4*S**2 - 2*p + q/S, dtype='complex64')
+    
+    x1 = T_1 - S - T_2
+    x2 = T_1 - S + T_2
+    x3 = T_1 + S - T_2
+    x4 = T_1 + S + T_2
+    
+    return np.array([x1,x2,x3,x4])
+
+        
+def abs_diff(poly_array):
+    '''
+    Given an array of two polynomial terms, returns the squared absolute 
+    difference.
+    '''
+    
+    P = poly_array[0]
+    Q = poly_array[1]
+    
+    return np.abs(P)**2 - np.abs(Q)**2
+
+
+# UNUSED
 def eig2D_poly(z, Omega, Delta, tau0, param):
     '''
     Returns the 2x2 determinant complex eigenvalue criterion, in the form of
@@ -238,94 +397,6 @@ def eig2D_quartic(Omega, Delta, tau0, param):
     b_0 = C_2*(1-k)**2 + C_2*k*(1-k) - C_2*(1-k)
     
     return np.array([b_4, b_3, b_2, b_1, b_0])
-
-
-# SUPPLEMENTARY FUNCTIONS
-
-def phase_sum(u, tau, N, param, phi_fun):
-    '''
-    Computes the right-side integral as a double-Riemann sum with N steps,
-    at delay tau, and prediction phi function phi(x)
-    '''
-    
-    w0 = param['omega0']
-    g = param['g']
-    a = param['a']
-    T = param['T']
-    gain = param['gain']
-    
-    x_arr = phi_fun(np.arange(N)/N)
-    N_diffs = (x_arr[:,None] - x_arr).T
-    z0 = np.zeros(N_diffs.shape)
-    N_arr = np.sin(-u*np.maximum(tau + gain*N_diffs, z0) + N_diffs)
-    
-    return np.sum(N_arr) / N**2
-
-
-def phase_gauss(u, tau, N, param, sigma):
-    '''
-    Computes the right-side integral as a double-Riemann sum with N steps,
-    at delay tau, and a Gaussian distribution of differences at mean 0 and
-    variance sigma^2.
-    '''
-    
-    w0 = param['omega0']
-    g = param['g']
-    a = param['a']
-    T = param['T']
-    gain = param['gain']
-    
-    z0 = np.zeros(N)
-    N_diffs = -pi + 2*pi*np.arange(N) / N
-    gauss = ((np.sqrt(2*pi)*sigma)**-1)*np.exp(-N_diffs**2 / (2*sigma**2))
-    
-    N_arr = np.sin(-u*np.maximum(tau + gain*N_diffs, z0) + N_diffs)*gauss
-    
-    return 2*pi*np.sum(N_arr) / N
-
-
-def quartic_roots(coeffs):
-    '''
-    Given an array of coefficients (in increasing order of degrees) up to
-    order 4, returns the quartic roots corresponding to the polynomial with
-    the inputted coefficients.
-    '''
-    
-    # Coefficients
-    a,b,c,d,e = coeffs
-
-    # Define p,q
-    p = (8*a*c - 3*b**2) / (8*a**2)
-    q = (b**3 - 4*a*b*c + 8*a**2*d) / (8*a**3)
-    
-    D_0 = c**2 - 3*b*d + 12*a*e
-    D_1 = 2*c**3 - 9*b*c*d + 27*b**2*e + 27*a*d**2 - 72*a*c*e
-    
-    Q = (np.sqrt(D_1 + (D_1**2 - 4*D_0**3), dtype='complex64')/2)**(1/3)
-    S = 0.5*(-2*p/3 + (Q + D_0/Q)/(3*a))**0.5
-    
-    # Roots
-    T_1 = -b/(4*a)
-    T_2 = 0.5*np.sqrt(-4*S**2 - 2*p + q/S, dtype='complex64')
-    
-    x1 = T_1 - S - T_2
-    x2 = T_1 - S + T_2
-    x3 = T_1 + S - T_2
-    x4 = T_1 + S + T_2
-    
-    return np.array([x1,x2,x3,x4])
-
-        
-def abs_diff(poly_array):
-    '''
-    Given an array of two polynomial terms, returns the squared absolute 
-    difference.
-    '''
-    
-    P = poly_array[0]
-    Q = poly_array[1]
-    
-    return np.abs(P)**2 - np.abs(Q)**2
 
 
 if __name__ == '__main__':
