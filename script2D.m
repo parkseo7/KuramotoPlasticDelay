@@ -1,4 +1,4 @@
-num = 5;
+num = 1;
 
 % Parameters
 par = struct ;
