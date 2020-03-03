@@ -332,7 +332,22 @@ def quartic_roots(coeffs):
     
     return np.array([x1,x2,x3,x4])
 
-        
+
+def quadratic_roots(coeffs):
+    '''
+    Returns the two branch roots of the quadratic using the coefficients.
+    '''
+    
+    a = coeffs[0]
+    b = coeffs[1]
+    c = coeffs[2]
+    
+    r1 = (-b + np.sqrt(b**2 - 4*a*c, dtype='complex64'))/(2*a)
+    r2 = (-b - np.sqrt(b**2 - 4*a*c, dtype='complex64'))/(2*a)
+    
+    return (r1, r2)
+
+
 def abs_diff(poly_array):
     '''
     Given an array of two polynomial terms, returns the squared absolute 

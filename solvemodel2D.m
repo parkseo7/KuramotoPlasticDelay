@@ -2,6 +2,7 @@ function sol = solvemodel2D(par, ddeopts)
 
     % Parameters
     w0 = par.w0 ;
+    init_freq = par.init_freq*[1;1];
     omega = w0*[1;1] ;
     g = par.g/2;
     
@@ -14,7 +15,7 @@ function sol = solvemodel2D(par, ddeopts)
     
     % initial condition
     Delta0 = par.Delta0;
-    hist_linX = @(t) [0 Delta0] + omega.'*(t - t0) ;
+    hist_linX = @(t) [0 Delta0] + init_freq.'*(t - t0) ;
     hist_lin = @(t) packX(hist_linX(t), tau0) ;
     
     % Functions

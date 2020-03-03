@@ -4,6 +4,7 @@ num = 1;
 par = struct ;
 
 par.w0 = 1.0 ;
+par.init_freq = 1.0;
 par.g = 1.5 ;
 par.Delta0 = pi/2;
 
