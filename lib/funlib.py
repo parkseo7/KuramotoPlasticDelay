@@ -188,6 +188,57 @@ def eig2D_cubic(Omega, Delta, tau0, param):
 
 
 # N-LIMIT ANALYSIS
+def eigN_limit(z, Omega, delta2, tau0, param, steps=50, cap=10):
+    '''
+    Returns the (signed) error of the eigenvalue N-limit equation at eigenvalue
+    z. To be used to generate an error heatmap. If tauE > cap, let tauE = cap.
+    '''
+    
+    # Parameters
+    g = param['g']
+    gain = param['gain']
+    k = Omega*gain
+    
+    Delta = np.linspace(-pi, pi, num=steps)
+    zeros_N = np.zeros(Delta.size)
+    ones_N = np.ones(Delta.size)
+    tauE = np.maximum(tau0 + gain*Delta, zeros_N)
+    tauE = np.minimum(tauE, cap*ones_N)
+    
+    C = g*np.cos(-Omega*tauE + Delta)
+    H = np.maximum(Delta, zeros_N)
+    
+    gauss = (2*pi*delta2)**(-1/2)*np.exp(-Delta**2/(2*delta2))
+    
+    term1 = z*(z+1)
+    term2 = np.sum(C*(z+1-k*H)*gauss)*(2*pi/zeros_N.size)
+    term3 = np.sum(C*(k*H - (z+1)*np.exp(-z*tauE))*gauss)*(2*pi/zeros_N.size)
+    
+    return term1 + term2 + term3
+
+
+def eigN_limit2(z, Omega, delta2, tau0, param, steps=50, std=2):
+    '''
+    Simplified version of the eigenvalue equation.
+    '''
+    
+    # Parameters
+    g = param['g']
+    gain = param['gain']
+    k = Omega*gain
+    
+    delta = np.sqrt(delta2)
+    Delta = np.linspace(-std*delta, std*delta, num=steps)
+    zeros_N = np.zeros(Delta.size)
+    tauE = np.maximum(tau0 + gain*Delta, zeros_N)
+    
+    C = g*np.cos(-Omega*tauE + Delta)
+    
+    gauss = (2*pi*delta2)**(-1/2)*np.exp(-Delta**2/(2*delta2))
+    
+    return np.sum(C*(np.exp(-z*tauE) - 1)*gauss)*2*std*delta/zeros_N.size - z
+    
+    
 def invar_err(Omega, U, N_x, param):
     '''
     Evaluate the (approximate) integral giving the error of the invariance
@@ -415,7 +466,26 @@ def eig2D_quartic(Omega, Delta, tau0, param):
 
 
 if __name__ == '__main__':
-    z = np.random.random(size=(3,4))
-    Y = polyval(z, [2,3,4])
+    # Parameters
+    g = 1.5
+    gain = 30
+    Omega = 0.6
+    delta2 = 0.4**2
+    steps=50
+    tau0 = 0.1
+    k = Omega*gain
+    
+    Delta = np.linspace(-pi, pi, num=steps)
+    zeros_N = np.zeros(Delta.size)
+    tauE = np.maximum(tau0 + gain*Delta, zeros_N)
+    C = g*np.cos(-Omega*tauE + Delta)
+    H = np.maximum(Delta, zeros_N)
+    
+    gauss = (2*pi*delta2)**(-1/2)*np.exp(-Delta**2/(2*delta2))
+    
+    z = -1+1j
+    term1 = z*(z+1)
+    term2 = np.sum(C*(z+1-k*H)*gauss)*(2*pi/zeros_N.size)
+    term3 = np.sum(C*(k*H - (z+1)*np.exp(-z*tauE))*gauss)*(2*pi/zeros_N.size)
     
     

@@ -11,7 +11,8 @@ function sol = solvemodel(par, ddeopts)
     inj = par.inj ;
     t0 = par.t0 ;
     tf = par.tf ;
-
+    offset = par.offset;
+    
     % frequencies, connections, baseline conduction delays
     connprob = 1 - inj;
     a = double(rand(N,N)<connprob);
@@ -20,7 +21,7 @@ function sol = solvemodel(par, ddeopts)
     A = g/N*a;
     
     % initial condition (constantly distributed around half-circle at t0)
-    hist_linX = @(t) (pi/N)*(0:N-1) + omega.'*(t - t0) ;
+    hist_linX = @(t) offset*(pi/N)*(0:N-1) + omega.'*(t - t0) ;
     % hist_linX = @(t) (pi/N)*(0:N-1) + omega.'*(t - t0) ;
     hist_lin = @(t) packX(hist_linX(t), tau0) ;
     

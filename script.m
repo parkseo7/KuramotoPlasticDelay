@@ -1,6 +1,6 @@
 % Export directory
-foldername = 'matlab1' ;
-trial = 1;
+foldername = 'matlab2' ;
+trial = 3;
 
 % Parameters
 par = struct ;
@@ -13,8 +13,9 @@ par.gain = 30 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 30 ;
-   
+par.tf = 120 ;
+par.offset = 0.25;
+
 % DDE options
 ddeopts = ddeset() ;
 % ddeopts.MaxStep = 1.0 ;
@@ -32,6 +33,7 @@ tau = sol.y(N+1:end,:).' ;
 taup = sol.yp(N+1:end,:).' ;
 tau0 = sol.tau0 ;
 phi0 = sol.phi0 ;
+offset = par.offset;
 
 gain = par.gain ;
 omega0 = par.w0 ;
@@ -51,4 +53,4 @@ end
 filename = ['sol' num2str(N) '_gain' num2str(gain) '_' num2str(trial) '.mat'] ;
 dir_file = fullfile(dir_folder, filename) ;
 save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'tau0', 'N', 'gain', 'omega0', ...
-    'T', 'g', 'tf', 'phi0')
+    'T', 'g', 'tf', 'phi0', 'offset')
