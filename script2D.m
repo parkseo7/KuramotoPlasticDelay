@@ -1,11 +1,12 @@
-num = 1;
+foldername = 'matlab2D_3' ;
+num = 2;
 
 % Parameters
 par = struct ;
 
 par.w0 = 1.0 ;
-par.init_freq = 1.0;
 par.g = 1.5 ;
+par.init_freq = 1.0;
 par.Delta0 = pi/2;
 
 par.t0 = 0 ;
@@ -13,7 +14,12 @@ par.tf = 1000 ;
 
 par.gain = 30 ;
 par.alphatau = 1.0 ;
-par.tau0 = [0.01;0.01];
+par.tau0 = 0.1;
+
+% History function
+init_freq = 1.0;
+Delta0 = pi/4;
+par.hist = IVPhistory([init_freq, init_freq], [0 Delta0], par);
 
 % DDE options
 ddeopts = ddeset() ;
@@ -35,14 +41,12 @@ g = par.g ;
 gain = par.gain ;
 omega0 = par.w0 ;
 
-Delta0 = par.Delta0 ;
 tau0 = par.tau0.' ;
 
 t0 = par.t0 ;
 tf = par.tf ;
 
 % Set up directory (check if it exists)
-foldername = 'matlab2D_1' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 
@@ -54,4 +58,4 @@ end
 filename = ['gain_' num2str(gain) '_num_' num2str(num) '.mat'] ;
 dir_file = fullfile(dir_folder, filename) ;
 save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'tau0', 'gain', 'omega0', ...
-    'g', 'tf', 'Delta0')
+    'g', 'tf', 'init_freq', 'Delta0')

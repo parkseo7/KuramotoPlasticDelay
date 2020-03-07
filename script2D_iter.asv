@@ -1,5 +1,5 @@
 % Set up directory (check if it exists)
-foldername = 'matlab2D_multi5' ;
+foldername = 'matlab2D_multi2' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 
@@ -26,7 +26,7 @@ t0 = par.t0 ;
 tf = par.tf ;
 
 % Varying parameters
-Delta_arr = (0.1:0.1:1)*pi/2 ;
+Delta_arr = (0:0.1:1)*pi/2 ;
 freq_arr = linspace(omega0-g/4,omega0+g/4,5);
 
 total = numel(Delta_arr)*numel(freq_arr) ;
