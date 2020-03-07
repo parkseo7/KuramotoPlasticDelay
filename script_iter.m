@@ -1,5 +1,5 @@
 % Set up directory (check if it exists)
-foldername = 'matlab2' ;
+foldername = 'matlabND_multi3' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 
@@ -7,22 +7,25 @@ if ~exist(dir_folder, 'dir')
    mkdir(dir_folder)
 end
 
-% Array of gain, T:
-gain_arr = 0:5:30 ;
-T_arr = 0:0.1:1 ;
+% Varying parameters
+std_arr = (0.1:0.2:1)*pi/4 ;
+freq_arr = linspace(omega0-g/4,omega0+g/4,2);
 
-total = numel(gain_arr)*numel(T_arr) ;
+total = numel(std_arr)*numel(freq_arr) ;
 
 % Parameters
 par = struct ;
 
 par.N = 30 ;
+N = par.N;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 30 ;
+par.tf = 60 ;
+par.gain = 30;
+par.tau0 = 0.1;
 
 % DDE options
 ddeopts = ddeset() ;
@@ -33,39 +36,44 @@ f = waitbar(0,'Starting trials...') ;
 
 % MAIN LOOP
 waitk = 0 ;
-for gain = gain_arr
-    for T = T_arr
+for std = std_arr
+    for freq = freq_arr
         
         % Waitbar
-        waittext = ['gain = ' num2str(gain) ', T = ' num2str(T)] ;
+        waittext = ['std = ' num2str(std) ', freq = ' num2str(freq)] ;
         waitprog = waitk / total ;
         waitbar(waitprog, f, waittext) ;
        
-        % Variable parameters
-        par.T = T ;
-        par.gain = gain ;
+        % History function
+        T = sqrt(3)*std;
+        phases = T*rand(1,N) - T/2;
+        init_freq = freq;
+        init_freqs = init_freq*ones(1,N);
+
+        par.hist = IVPhistory(init_freqs, phases, par);
 
         % Solve model
         sol = solvemodel(par, ddeopts) ;
 
         % Export (transpose all matrices)
-        N = par.N;
         t = sol.x.' ;
         y = sol.y(1:N,:).' ;
         yp = sol.yp(1:N,:).' ;
 
         tau = sol.y(N+1:end,:).' ;
         taup = sol.yp(N+1:end,:).' ;
-
+        
         omega0 = par.w0 ;
         tf = par.tf ;
         g = par.g ;
-
+        phi0 = phases;
+        tau0 = par.tau0;
+        
         % Save file
-        filename = ['sol_T' erase(num2str(T),'.') '_gain' num2str(gain) '.mat'] ;
+        filename = ['sol_num' num2str(waitk) '.mat'] ;
         dir_file = fullfile(dir_folder, filename) ;
         save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'N', 'gain', 'omega0', ...
-            'T', 'g', 'tf')
+            'tau0', 'phi0', 'g', 'tf', 'std', 'init_freq')
         
         % Wait progress
         waitk = waitk + 1 ;

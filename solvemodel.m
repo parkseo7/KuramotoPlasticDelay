@@ -5,25 +5,25 @@ function sol = solvemodel(par, ddeopts)
     w0 = par.w0 ;
     omega = w0*ones(N,1) ;
     g = par.g ;
-    T = par.T ;
+    tau0_0 = par.tau0 ;
     kappa = par.gain ;
     alphar = par.alphatau ;
     inj = par.inj ;
     t0 = par.t0 ;
     tf = par.tf ;
-    offset = par.offset;
     
     % frequencies, connections, baseline conduction delays
     connprob = 1 - inj;
     a = double(rand(N,N)<connprob);
-    tau0 = T*ones(N,N);
+    tau0 = tau0_0*ones(N,N);
     % tau0 = 2*T*rand(N,N);
     A = g/N*a;
     
     % initial condition (constantly distributed around half-circle at t0)
-    hist_linX = @(t) offset*(pi/N)*(0:N-1) + omega.'*(t - t0) ;
+    histX = par.hist;
+    % hist_linX = @(t) offset*(pi/N)*(0:N-1) + omega.'*(t - t0) ;
     % hist_linX = @(t) (pi/N)*(0:N-1) + omega.'*(t - t0) ;
-    hist_lin = @(t) packX(hist_linX(t), tau0) ;
+    hist_lin = @(t) packX(histX(t-t0), tau0) ;
     
     % Functions
     kuraf = @(t,X,Z) modelrhs(t,X,Z,omega,A,kappa,alphar,tau0) ;
@@ -32,7 +32,6 @@ function sol = solvemodel(par, ddeopts)
     % solve
     sol = ddesd(kuraf, tauf, hist_lin, [t0,tf], ddeopts) ;
     sol.tau0 = tau0 ;
-    sol.phi0 = hist_linX(t0);
    
 end
 
