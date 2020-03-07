@@ -4,10 +4,61 @@ import os
 import numpy as np
 from numpy import linalg
 from numpy.polynomial.polynomial import polyval
+from scipy import misc
 import math
 from math import pi
 
 # BRUTE FORCE COMPUTATION OF EIGENVALUES
+
+# N-LIMIT ASYMPTOTIC INTEGRANDS
+
+def sine_fold(delta2, L=pi, steps=50):
+    '''
+    Approximates the integral for the folded sine integral in the decomposition
+    of the Omega equation, where tauE = 0
+    '''
+    
+    Delta = np.linspace(0, L, num=steps)
+    gauss = np.exp(-Delta**2/(2*delta2))
+    
+    S = (2*pi*delta2)**(-1/2)*np.sin(Delta)*gauss
+    
+    return L*np.sum(S) / steps
+
+
+def sine_fold_gain(Omega, delta2, tau0, gain, L=pi, steps=50):
+    '''
+    Approximates the integral for the folded sine integral in the decomposition
+    of the Omega equation, where tauE > 0.
+    '''
+    
+    Delta = np.linspace(0, L, num=steps)
+    gauss = np.exp(-Delta**2/(2*delta2))
+    sine = np.sin(-Omega*tau0 + (1-Omega*gain)*Delta)
+    
+    S = (2*pi*delta2)**(-1/2)*sine*gauss
+    
+    return L*np.sum(S) / steps
+
+
+def sine_fold_poly(Omega, delta2, tau0, gain, deg=2):
+    '''
+    Returns the terms of the sine Gaussian expanded polynomial up
+    to degree deg.
+    '''
+    
+    a = 1 - Omega*gain
+    terms = np.zeros(deg+1)
+    
+    # Fill in odd powers
+    for k in range(deg):
+            numer = (-1)**k*a**(2*k+1)*(2*delta2)**(k+1/2)*misc.factorial(k)
+            denom = misc.factorial(2*k+1)*2*np.sqrt(pi)
+
+            terms[k] = numer / denom
+            
+    return terms
+
 
 # MATRICES
 
@@ -125,9 +176,10 @@ if __name__ == '__main__':
     # a = np.random.random(size=(N,N)) + 1j*np.random.random(size=(N,N))
     # d = linalg.slogdet(a)
     
-    X = (2+1j)*np.eye(2)
-    d = linalg.slogdet(X)
+    # X = (2+1j)*np.eye(2)
+    # d = linalg.slogdet(X)
     
     # slogdet computes the log norm of the complex determinant.
     # First complex value is the normalized determinant (sign)
-    
+    delta2 = 1**2
+    s = sine_fold(delta2)

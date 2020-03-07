@@ -1,15 +1,15 @@
 % Export directory
 foldername = 'matlab2' ;
-trial = 3;
+trial = 4;
 
 % Parameters
 par = struct ;
 
-par.N = 50 ;
+par.N = 40 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
-par.T = 0.1 ;
-par.gain = 30 ;
+par.T = 0.5 ;
+par.gain = 2.0 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
