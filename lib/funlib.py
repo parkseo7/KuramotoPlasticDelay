@@ -93,7 +93,7 @@ def Omega_root(phi1, tau0, param):
 
 
 # 2D ANALYSIS
-def Omega2D(Omega, tau0, param):
+def Omega2D(Omega, param):
     '''
     Determines the fixed-point equations for Omega, Delta, given initial guesses
     Omega0, Delta0.
@@ -103,16 +103,13 @@ def Omega2D(Omega, tau0, param):
     g = param['g']/2
     w0 = param['omega0']
     gain = param['gain']
+    tau0 = param['tau0']
     
     # Here Delta = Delta_21
-    # tauE = np.maximum(tau0 + gain*np.array([Delta, -Delta]), np.zeros(2))
-    
-    # Delta_fun = lambda u: (u*tau0[1] + np.arcsin((w0 - u)/g))/(1 - gain*u)
-    
     Delta_fun = lambda u: np.arcsin((w0 - u)/g)
     
     # Fixed-point equation for Omega:
-    Omega_fun = lambda u: u - w0 - g*np.sin(-u*tau0[0] + (1 - gain*u)*Delta_fun(u))
+    Omega_fun = lambda u: u - w0 - g*np.sin(-u*tau0 + (1 - gain*u)*Delta_fun(u))
     
     return Omega_fun(Omega), Delta_fun(Omega)
 
@@ -136,7 +133,7 @@ def Omega2D_root(u, tau0, param):
     return f
 
 
-def eig2D_det(z, Omega, Delta, tau0, param):
+def eig2D_det(z, Omega, Delta, param):
     '''
     Returns the 2x2 determinant complex eigenvalue criterion, in the form of
     an exponential polynomial. Here, Omega, Delta are (one of the) solutions
@@ -146,22 +143,24 @@ def eig2D_det(z, Omega, Delta, tau0, param):
     # Parameters
     g = param['g']/2
     w0 = param['omega0']
-    gain = param['gain']    
+    gain = param['gain']
+    tau0 = param['tau0']
     
     # Defined parameters
     k = Omega*gain
-    C_12 = g*np.cos(-Omega*tau0[0] + (1 - k)*Delta)
+    C_12 = g*np.cos(-Omega*tau0 + (1 - k)*Delta)
     C_21 = g*np.cos(Delta)
     
     # Polynomials
     P = (z*(z+1) + C_12*(z+1-k))*(z+C_21) + C_12*C_21*k
     Q = -C_12*C_21*(z+1)
-    E = np.exp(-z*(tau0[0] + gain*Delta))
+    E = np.exp(-z*(tau0 + gain*Delta))
     
-    return np.array([P, Q, E, P + Q*E, P + Q])
+    # return np.array([P, Q, E, P + Q*E, P + Q])
+    return P + Q*E
 
 
-def eig2D_cubic(Omega, Delta, tau0, param):
+def eig2D_cubic(Omega, Delta, param):
     '''
     Returns the coefficients of the quartic polynomial P(z) + Q(z) from the
     exponential polynomial in our eigenvalue equation.
@@ -171,10 +170,11 @@ def eig2D_cubic(Omega, Delta, tau0, param):
     g = param['g']/2
     w0 = param['omega0']
     gain = param['gain']
+    tau0 = param['tau0']
     
     # Defined parameters
     k = Omega*gain
-    C_12 = g*np.cos(-Omega*tau0[0] + (1 - k)*Delta)
+    C_12 = g*np.cos(-Omega*tau0 + (1 - k)*Delta)
     C_21 = g*np.cos(Delta)
     C = C_12 + C_21
     C_2 = C_12*C_21
@@ -238,73 +238,6 @@ def eigN_limit2(z, Omega, delta2, tau0, param, steps=50, std=2):
     
     return np.sum(C*(np.exp(-z*tauE) - 1)*gauss)*2*std*delta/zeros_N.size - z
     
-    
-def invar_err(Omega, U, N_x, param):
-    '''
-    Evaluate the (approximate) integral giving the error of the invariance
-    criterion. That is, if invar_err = 0, then Omega, U is a plausible
-    synchronization state.
-    '''
-    
-    # Parameters
-    tau0 = param['T']
-    gain = param['gain']
-    
-    # Function to integrate (x = theta)
-    f = lambda x: np.abs(np.sin(-Omega*tau0 + (1-Omega*gain)*(U - x)) + np.sin(x))
-    
-    # Compute Riemann sum
-    x_arr = np.linspace(0,U, num=N_x)
-    err = np.sum(f(x_arr))*U/N_x
-    
-    return err
-
-
-def invar_err2(Omega, L, dist_fun, N, param):
-    '''
-    Sanity check.
-    '''
-    
-    # Parameters
-    tau0 = param['T']
-    gain = param['gain']
-    w0 = param['omega0']
-    g = param['g']
-    
-    phi = np.linspace(0,U)/N
-    phi_diffs = (phi[:,None] - phi).T
-    z0 = np.zeros((N,N))
-    
-    sin_arr = np.sin(-Omega*np.maximum(tau0 + gain*phi_diffs, z0) + phi_diffs)    
-    den_arr = dist_fun(phi)
-    
-    # Summation
-    err = Omega - w0 - g*np.sum(sin_arr, axis=1)/N
-    
-    return err
-
- 
-def invar_err3(Omega, phi, param):
-    '''
-    Given asymptotic solutions, computes the invariance error.
-    '''
-    
-    # Parameters
-    tau0 = param['T']
-    gain = param['gain']
-    w0 = param['omega0']
-    g = param['g']
-    
-    N = phi.size
-    phi_diffs = (phi[:,None] - phi).T
-    z0 = np.zeros(phi_diffs.shape)
-    sin_arr = np.sin(-Omega*np.maximum(tau0 + gain*phi_diffs, z0) + phi_diffs)    
-    
-    # Summation
-    err = Omega - w0 - g*np.sum(sin_arr, axis=1)/N
-    
-    return err
-
 
 # SUPPLEMENTARY FUNCTIONS
 
@@ -350,38 +283,6 @@ def phase_gauss(u, tau, N, param, sigma):
         N_arr = np.sin(-u*np.maximum(tau + gain*N_diffs, z0) + N_diffs)*gauss
     
     return 2*pi*np.sum(N_arr) / N
-
-
-def quartic_roots(coeffs):
-    '''
-    Given an array of coefficients (in increasing order of degrees) up to
-    order 4, returns the quartic roots corresponding to the polynomial with
-    the inputted coefficients.
-    '''
-    
-    # Coefficients
-    a,b,c,d,e = coeffs
-
-    # Define p,q
-    p = (8*a*c - 3*b**2) / (8*a**2)
-    q = (b**3 - 4*a*b*c + 8*a**2*d) / (8*a**3)
-    
-    D_0 = c**2 - 3*b*d + 12*a*e
-    D_1 = 2*c**3 - 9*b*c*d + 27*b**2*e + 27*a*d**2 - 72*a*c*e
-    
-    Q = (np.sqrt(D_1 + (D_1**2 - 4*D_0**3), dtype='complex64')/2)**(1/3)
-    S = 0.5*(-2*p/3 + (Q + D_0/Q)/(3*a))**0.5
-    
-    # Roots
-    T_1 = -b/(4*a)
-    T_2 = 0.5*np.sqrt(-4*S**2 - 2*p + q/S, dtype='complex64')
-    
-    x1 = T_1 - S - T_2
-    x2 = T_1 - S + T_2
-    x3 = T_1 + S - T_2
-    x4 = T_1 + S + T_2
-    
-    return np.array([x1,x2,x3,x4])
 
 
 def quadratic_roots(coeffs):
@@ -463,6 +364,105 @@ def eig2D_quartic(Omega, Delta, tau0, param):
     b_0 = C_2*(1-k)**2 + C_2*k*(1-k) - C_2*(1-k)
     
     return np.array([b_4, b_3, b_2, b_1, b_0])
+
+
+def invar_err(Omega, U, N_x, param):
+    '''
+    Evaluate the (approximate) integral giving the error of the invariance
+    criterion. That is, if invar_err = 0, then Omega, U is a plausible
+    synchronization state.
+    '''
+    
+    # Parameters
+    tau0 = param['T']
+    gain = param['gain']
+    
+    # Function to integrate (x = theta)
+    f = lambda x: np.abs(np.sin(-Omega*tau0 + (1-Omega*gain)*(U - x)) + np.sin(x))
+    
+    # Compute Riemann sum
+    x_arr = np.linspace(0,U, num=N_x)
+    err = np.sum(f(x_arr))*U/N_x
+    
+    return err
+
+
+def invar_err2(Omega, L, dist_fun, N, param):
+    '''
+    Sanity check.
+    '''
+    
+    # Parameters
+    tau0 = param['T']
+    gain = param['gain']
+    w0 = param['omega0']
+    g = param['g']
+    
+    phi = np.linspace(0,U)/N
+    phi_diffs = (phi[:,None] - phi).T
+    z0 = np.zeros((N,N))
+    
+    sin_arr = np.sin(-Omega*np.maximum(tau0 + gain*phi_diffs, z0) + phi_diffs)    
+    den_arr = dist_fun(phi)
+    
+    # Summation
+    err = Omega - w0 - g*np.sum(sin_arr, axis=1)/N
+    
+    return err
+
+ 
+def invar_err3(Omega, phi, param):
+    '''
+    Given asymptotic solutions, computes the invariance error.
+    '''
+    
+    # Parameters
+    tau0 = param['T']
+    gain = param['gain']
+    w0 = param['omega0']
+    g = param['g']
+    
+    N = phi.size
+    phi_diffs = (phi[:,None] - phi).T
+    z0 = np.zeros(phi_diffs.shape)
+    sin_arr = np.sin(-Omega*np.maximum(tau0 + gain*phi_diffs, z0) + phi_diffs)    
+    
+    # Summation
+    err = Omega - w0 - g*np.sum(sin_arr, axis=1)/N
+    
+    return err
+
+
+def quartic_roots(coeffs):
+    '''
+    Given an array of coefficients (in increasing order of degrees) up to
+    order 4, returns the quartic roots corresponding to the polynomial with
+    the inputted coefficients.
+    '''
+    
+    # Coefficients
+    a,b,c,d,e = coeffs
+
+    # Define p,q
+    p = (8*a*c - 3*b**2) / (8*a**2)
+    q = (b**3 - 4*a*b*c + 8*a**2*d) / (8*a**3)
+    
+    D_0 = c**2 - 3*b*d + 12*a*e
+    D_1 = 2*c**3 - 9*b*c*d + 27*b**2*e + 27*a*d**2 - 72*a*c*e
+    
+    Q = (np.sqrt(D_1 + (D_1**2 - 4*D_0**3), dtype='complex64')/2)**(1/3)
+    S = 0.5*(-2*p/3 + (Q + D_0/Q)/(3*a))**0.5
+    
+    # Roots
+    T_1 = -b/(4*a)
+    T_2 = 0.5*np.sqrt(-4*S**2 - 2*p + q/S, dtype='complex64')
+    
+    x1 = T_1 - S - T_2
+    x2 = T_1 - S + T_2
+    x3 = T_1 + S - T_2
+    x4 = T_1 + S + T_2
+    
+    return np.array([x1,x2,x3,x4])
 
 
 if __name__ == '__main__':
