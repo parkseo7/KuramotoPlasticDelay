@@ -188,6 +188,32 @@ def eig2D_cubic(Omega, Delta, param):
 
 
 # N-LIMIT ANALYSIS
+
+def Omega_infty(u, delta2, param, L=pi, steps=50):
+    '''
+    Computes the right-side integral as a double-Riemann sum with N steps,
+    at delay tau, and a Gaussian distribution of differences at mean 0 and
+    variance sigma^2.
+    '''
+    
+    w0 = param['omega0']
+    g = param['g']
+    gain = param['gain']
+    tau0 = param['tau0']
+    
+    N = steps
+    z0 = np.zeros(N)
+    N_diffs = -L + 2*L*np.arange(N) / N
+    
+    if delta2 == 0:
+        N_arr = np.sin(-u*tau0 + z0)
+    else:
+        gauss = ((np.sqrt(2*pi*delta2))**-1)*np.exp(-N_diffs**2 / (2*delta2))
+        N_arr = np.sin(-u*np.maximum(tau0 + gain*N_diffs, z0) + N_diffs)*gauss
+    
+    return w0 + g*2*L*np.sum(N_arr) / N
+
+
 def eigN_limit(z, Omega, delta2, tau0, param, steps=50, cap=10):
     '''
     Returns the (signed) error of the eigenvalue N-limit equation at eigenvalue
@@ -259,30 +285,6 @@ def phase_sum(u, tau, N, param, phi_fun):
     N_arr = np.sin(-u*np.maximum(tau + gain*N_diffs, z0) + N_diffs)
     
     return np.sum(N_arr) / N**2
-
-
-def phase_gauss(u, tau, N, param, sigma):
-    '''
-    Computes the right-side integral as a double-Riemann sum with N steps,
-    at delay tau, and a Gaussian distribution of differences at mean 0 and
-    variance sigma^2.
-    '''
-    
-    w0 = param['omega0']
-    g = param['g']
-    a = param['a']
-    T = param['T']
-    gain = param['gain']
-    
-    z0 = np.zeros(N)
-    N_diffs = -pi + 2*pi*np.arange(N) / N
-    if sigma == 0:
-        N_arr = np.sin(-u*tau + z0)
-    else:
-        gauss = ((np.sqrt(2*pi)*sigma)**-1)*np.exp(-N_diffs**2 / (2*sigma**2))
-        N_arr = np.sin(-u*np.maximum(tau + gain*N_diffs, z0) + N_diffs)*gauss
-    
-    return 2*pi*np.sum(N_arr) / N
 
 
 def quadratic_roots(coeffs):

@@ -5,6 +5,7 @@ import numpy as np
 from numpy import linalg
 from numpy.polynomial.polynomial import polyval
 from scipy import misc
+from scipy import stats
 import math
 from math import pi
 
@@ -58,6 +59,136 @@ def sine_fold_poly(Omega, delta2, tau0, gain, deg=2):
             terms[k] = numer / denom
             
     return terms
+
+
+# Eigenvalues in N-limit
+
+def cos_int(z, Omega, delta2, tau0, gain, L=pi, steps=50):
+    '''
+    Compute the integrand on the right-side of the eigenvalue equation.
+    '''
+    
+    Delta = np.linspace(0, L, num=steps)
+    gauss = np.exp(-Delta**2/(2*delta2))
+    cosine = np.cos(-Omega*tau0 + (1-Omega*gain)*Delta)
+    
+    S = (2*pi*delta2)**(-1/2)*cosine*(np.exp(-z*(tau0 + gain*Delta)/gain) - 1)*gauss
+    
+    return L*np.sum(S) / steps
+
+
+def cos_fold_gain(Omega, delta2, tau0, gain, L=pi, steps=50):
+    '''
+    Approximates the integral for the folded sine integral in the decomposition
+    of the Omega equation, where tauE > 0.
+    '''
+    
+    Delta = np.linspace(0, L, num=steps)
+    gauss = np.exp(-Delta**2/(2*delta2))
+    cosine = np.cos(-Omega*tau0 + (1-Omega*gain)*Delta)
+    
+    S = (2*pi*delta2)**(-1/2)*cosine*gauss
+    
+    return L*np.sum(S) / steps
+
+
+def eig_coeffs(M, Omega, delta2, tau0, gain):
+    '''
+    Returns the coefficient of all powers of the eigenvalue term lambda,
+    in the Gaussian asymptotic expansion of C(x)e^-bx * gauss up to the Mth
+    degree.
+    '''
+    
+    coeffs = np.zeros(M+1)
+    
+    for m in range(1,M+1):
+        cos_term = cos_coeff(m, M, Omega, delta2, tau0, gain)
+        sin_term = sin_coeff(m, M, Omega, delta2, tau0, gain)
+        coeffs[m] = cos_term + sin_term
+        
+    return coeffs
+
+
+def cos_coeff(n, M, Omega, delta2, tau0, gain):
+    '''
+    Returns the coefficient of the nth power of the eigenvalue term lambda,
+    in the Gaussian asymptotic expansion of cos(ax)e^-bx * gauss up to the Mth
+    degree.
+    '''
+    
+    if n > M:
+        return 0
+    
+    # Define A,B
+    A = 1 - Omega*gain
+    B = 1 # gain
+    n_fac = misc.factorial(n)
+    
+    # Summation
+    coeff = 0
+    k = 0
+    K = (M-n)/2
+    while k <= K:
+        numer = (-1)**(k+n)*A**(2*k)*B**n*gauss_moment(delta2, 2*k+n)
+        denom = misc.factorial(2*k)*n_fac
+        
+        coeff += (numer/denom)
+        k += 1
+        
+    return np.sin(-Omega*tau0)*coeff
+
+
+def sin_coeff(n, M, Omega, delta2, tau0, gain):
+    '''
+    Returns the coefficient of the nth power of the eigenvalue term lambda,
+    in the Gaussian asymptotic expansion of sin(ax)e^-bx * gauss up to the Mth
+    degree.
+    '''
+    
+    if n > M:
+        return 0
+    
+    # Define A,B
+    A = 1 - Omega*gain
+    B = 1 # gain
+    n_fac = misc.factorial(n)
+    
+    # Summation
+    coeff = 0
+    k = 0
+    K = (M-n-1)/2
+    while k <= K:
+        numer = (-1)**(k+n)*A**(2*k+1)*B**n*gauss_moment(delta2, 2*k+n+1)
+        denom = misc.factorial(2*k+1)*n_fac
+        
+        coeff += (numer/denom)
+        k += 1
+        
+    return np.cos(-Omega*tau0)*coeff
+
+        
+def gauss_moment(delta2, m):
+    '''
+    Returns the nth moment of the absolute Gaussian random variable 
+    (divided by 2) with variance delta2.
+    '''
+    
+    delta = np.sqrt(delta2)
+    
+    if m % 2 == 0:
+        b = 1/2
+    else:
+        b = 1/np.sqrt(2*pi)
+    
+    return b*delta**m*misc.factorial2(m-1)
+
+
+def powers(x, M):
+    '''
+    Returns an array of all powers of x up to degree M.
+    '''
+    
+    return np.array([x**n for n in range(M+1)])
 
 
 # MATRICES

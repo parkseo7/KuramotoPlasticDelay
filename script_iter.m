@@ -1,5 +1,5 @@
 % Set up directory (check if it exists)
-foldername = 'matlabND_multi3' ;
+foldername = 'matlabND_multi4' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 
@@ -16,14 +16,14 @@ total = numel(std_arr)*numel(freq_arr) ;
 % Parameters
 par = struct ;
 
-par.N = 30 ;
+par.N = 50 ;
 N = par.N;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 60 ;
+par.tf = 80 ;
 par.gain = 30;
 par.tau0 = 0.1;
 
