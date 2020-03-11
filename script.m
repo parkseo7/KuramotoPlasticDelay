@@ -1,6 +1,6 @@
 % Export directory
-foldername = 'matlabND_multi' ;
-trial = 1;
+foldername = 'matlabND_N30' ;
+trial = 2;
 
 % Parameters
 par = struct ;
@@ -9,15 +9,15 @@ par.N = 30 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.tau0 = 0.1 ;
-par.gain = 30 ;
+par.gain = 50 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 300 ;
+par.tf = 90 ;
 
 % History function
 N = par.N;
-std = 0.25;
+std = 0.75;
 init_freq = 0.8;
 init_freqs = init_freq*ones(1,N);
 
@@ -58,7 +58,7 @@ if ~exist(dir_folder, 'dir')
 end
 
 % Save file
-filename = ['sol' num2str(N) '_' num2str(trial) '.mat'] ;
+filename = ['sol_' num2str(trial) '.mat'] ;
 dir_file = fullfile(dir_folder, filename) ;
 save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'tau0', 'N', 'gain', 'omega0', ...
     'T', 'g', 'tf', 'phi0', 'std', 'init_freq')

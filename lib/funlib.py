@@ -191,7 +191,7 @@ def eig2D_cubic(Omega, Delta, param):
 
 def Omega_infty(u, delta2, param, L=pi, steps=50):
     '''
-    Computes the right-side integral as a double-Riemann sum with N steps,
+    Computes the right-side integral as a Riemann sum with N steps,
     at delay tau, and a Gaussian distribution of differences at mean 0 and
     variance sigma^2.
     '''
@@ -203,15 +203,46 @@ def Omega_infty(u, delta2, param, L=pi, steps=50):
     
     N = steps
     z0 = np.zeros(N)
-    N_diffs = -L + 2*L*np.arange(N) / N
+    Delta = -L + 2*L*np.arange(N) / N
     
     if delta2 == 0:
-        N_arr = np.sin(-u*tau0 + z0)
+        sin_arr = np.sin(-u*tau0 + z0)
     else:
-        gauss = ((np.sqrt(2*pi*delta2))**-1)*np.exp(-N_diffs**2 / (2*delta2))
-        N_arr = np.sin(-u*np.maximum(tau0 + gain*N_diffs, z0) + N_diffs)*gauss
+        gauss = ((np.sqrt(2*pi*delta2))**-1)*np.exp(-Delta**2 / (2*delta2))
+        sin_arr = np.sin(-u*np.maximum(tau0 + gain*Delta, z0) + Delta)*gauss
     
-    return w0 + g*2*L*np.sum(N_arr) / N
+    return w0 + g*2*L*np.sum(sin_arr) / N
+
+
+def Omega_infty_double(u, delta2, param, L=pi, steps=50):
+    '''
+    Computes the right-side integral as a double-Riemann sum with N steps,
+    at delay tau, and a Gaussian distribution of differences at mean 0 and
+    variance sigma^2.
+    '''
+    
+    w0 = param['omega0']
+    g = param['g']
+    gain = param['gain']
+    tau0 = param['tau0']
+    
+    N = steps
+    z0 = np.zeros((N,N))
+    Delta = -L + 2*L*np.arange(N) / N
+    
+    if delta2 == 0:
+        sin_arr = np.sin(-u*tau0 + z0)
+        integral = (2*L/N) * np.sum(sin_arr)
+        
+    else:
+        Delta_diff = (Delta[:,None] - Delta).T
+        sin_diff = np.sin(-u*np.maximum(tau0 + gain*Delta, z0) + Delta)
+        gauss = ((np.sqrt(2*pi*delta2))**-1)*np.exp(-Delta**2 / (2*delta2))
+        gauss_pair = np.matmul(gauss[:,None], np.array([gauss]))
+        sin_arr = sin_diff * gauss_pair
+        integral = (2*L/N)**2 * np.sum(sin_arr)
+    
+    return w0 + g * integral
 
 
 def eigN_limit(z, Omega, delta2, tau0, param, steps=50, cap=10):

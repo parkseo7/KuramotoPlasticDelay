@@ -1,5 +1,5 @@
 % Set up directory (check if it exists)
-foldername = 'matlabND_multi4' ;
+foldername = 'matlabND_multi_N30_2' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 
@@ -8,23 +8,28 @@ if ~exist(dir_folder, 'dir')
 end
 
 % Varying parameters
-std_arr = (0.1:0.2:1)*pi/4 ;
-freq_arr = linspace(omega0-g/4,omega0+g/4,2);
+L_std = 1.0;
+n_std = 4;
+L_freq = 1.0;
+n_freq = 4;
+std_arr = L_std*rand(1,n_std);% (0.1:0.2:1)*pi/4 ;
+freq_arr = L_freq*(rand(1,n_freq) - 0.5); % linspace(omega0-L_freq,omega0+L_freq,2);
+freq_arr = omega0 + freq_arr;
 
 total = numel(std_arr)*numel(freq_arr) ;
 
 % Parameters
 par = struct ;
 
-par.N = 50 ;
+par.N = 30 ;
 N = par.N;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 80 ;
-par.gain = 30;
+par.tf = 100 ;
+par.gain = 50;
 par.tau0 = 0.1;
 
 % DDE options

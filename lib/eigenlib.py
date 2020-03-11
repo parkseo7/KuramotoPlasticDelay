@@ -5,6 +5,7 @@ import numpy as np
 from numpy import linalg
 from numpy.polynomial.polynomial import polyval
 from scipy import misc
+from scipy import special
 from scipy import stats
 import math
 from math import pi
@@ -13,7 +14,7 @@ from math import pi
 
 # N-LIMIT ASYMPTOTIC INTEGRANDS
 
-def sine_fold(delta2, L=pi, steps=50):
+def sine_fold(t, delta2, L=pi, steps=50):
     '''
     Approximates the integral for the folded sine integral in the decomposition
     of the Omega equation, where tauE = 0
@@ -22,7 +23,7 @@ def sine_fold(delta2, L=pi, steps=50):
     Delta = np.linspace(0, L, num=steps)
     gauss = np.exp(-Delta**2/(2*delta2))
     
-    S = (2*pi*delta2)**(-1/2)*np.sin(Delta)*gauss
+    S = (2*pi*delta2)**(-1/2)*np.sin(t*Delta)*gauss
     
     return L*np.sum(S) / steps
 
@@ -77,19 +78,13 @@ def cos_int(z, Omega, delta2, tau0, gain, L=pi, steps=50):
     return L*np.sum(S) / steps
 
 
-def cos_fold_gain(Omega, delta2, tau0, gain, L=pi, steps=50):
+def sin_pow_ints(n, Omega, delta2, tau0, gain, L=pi, steps=50):
     '''
-    Approximates the integral for the folded sine integral in the decomposition
-    of the Omega equation, where tauE > 0.
+    Returns an array of sine Gaussian power terms, obtained by taking the power
+    series of the exponential term.
     '''
     
-    Delta = np.linspace(0, L, num=steps)
-    gauss = np.exp(-Delta**2/(2*delta2))
-    cosine = np.cos(-Omega*tau0 + (1-Omega*gain)*Delta)
-    
-    S = (2*pi*delta2)**(-1/2)*cosine*gauss
-    
-    return L*np.sum(S) / steps
+    pass
 
 
 def eig_coeffs(M, Omega, delta2, tau0, gain):
@@ -183,12 +178,234 @@ def gauss_moment(delta2, m):
     return b*delta**m*misc.factorial2(m-1)
 
 
+# MODIFIED EIGENVALUE INTEGRAL EXPANSION
+
+def Omega_infty_asy(Omega, delta2, param, deg_sin=50):
+    '''
+    The asymptotically expanded integral for Omega. To be used as a root equation
+    for N-limit synchronization point (Omega, delta2).
+    '''
+    
+    # Parameters
+    w0 = param['omega0']
+    g = param['g']
+    tau0 = param['tau0']
+    gain = param['gain']
+    
+    # Other values
+    A = 1 - gain*Omega
+    
+    term1 = np.sin(-Omega*tau0)*np.exp(-(A**2*delta2)/2)/2
+    term2 = trig_power_gauss2(A, 0, delta2, deg=deg_sin)
+    term2 *= np.cos(-Omega*tau0) / np.sqrt(2*pi)
+    term3 = trig_power_gauss2(1, 0, delta2, deg=deg_sin)
+    term3 *= 1 / np.sqrt(2*pi)
+    
+    return w0 + g * (term1 + term2 - term3)
+
+
+def eig_infty_scale(z, Omega, delta2, param, deg=2, R=1, L=pi, steps=100):
+    '''
+    Returns the right-side of the fixed-point scaled eigenvalue equation
+    (by R*gain), with the power series of the exponential term up to degree deg.
+    '''
+    
+    # Parameters
+    w0 = param['omega0']
+    g = param['g']
+    tau0 = param['tau0']
+    gain = param['gain']
+    
+    I_0 = R * gain * g * cos_fold_gain(Omega, delta2, tau0, gain, L=L, steps=steps)
+    
+    coeffs = np.zeros(deg+1)
+    for n in range(deg+1):
+        coeffs[n] = eig_infty_coeff(n, Omega, delta2, param, R=R, L=L, steps=steps)
+    
+    z_pow = powers(z, deg)
+    
+    taus = tau0 / (R*gain)
+    RS = np.sum(coeffs * z_pow)*np.exp(-z*taus) - I_0
+    
+    return RS
+
+def eig_infty_terms(deg, Omega, delta2, param, R=1, L=pi, steps=100):
+    '''
+    Returns an array of coefficients of lambda**n of the asymptotically expanded integral 
+    for lambda. To be used as a root equation for N-limit eigenvalues at (Omega, delta2).
+    '''
+    
+    # Parameters
+    w0 = param['omega0']
+    g = param['g']
+    tau0 = param['tau0']
+    gain = param['gain']
+    
+    I_0 = R*gain*g * cos_fold_gain(Omega, delta2, tau0, gain, L=L, steps=steps)
+    
+    coeffs = np.zeros(deg+1)
+    for n in range(deg+1):
+        coeffs[n] = eig_infty_coeff(n, Omega, delta2, param, R=R, L=L, steps=steps)
+    
+    taus = tau0 / (R*gain)
+    
+    return (coeffs, taus, I_0)
+
+
+def eig_infty_coeff(n, Omega, delta2, param, R=1, L=pi, steps=100):
+    '''
+    Returns the coefficient of lambda**n of the asymptotically expanded integral 
+    for lambda. To be used as a root equation for N-limit eigenvalues at (Omega, delta2).
+    '''
+    
+    # Parameters
+    w0 = param['omega0']
+    g = param['g']
+    tau0 = param['tau0']
+    gain = param['gain']
+    
+    # Change of variables
+    A = 1 - gain*Omega
+    
+    cos_term = np.cos(-Omega*tau0) * cos_xN_gauss(A, n, delta2, L=L, steps=steps)
+    sin_term = np.sin(-Omega*tau0) * sin_xN_gauss(A, n, delta2, L=L, steps=steps)
+    
+    coeff = R*gain*g*(cos_term - sin_term) / ((-R)**n * misc.factorial(n))
+    
+    return coeff
+
+
+def cos_fold_gain(Omega, delta2, tau0, gain, L=pi, steps=50):
+    '''
+    Approximates the integral for the folded sine integral in the decomposition
+    of the Omega equation, where tauE > 0.
+    '''
+    
+    Delta = np.linspace(0, L, num=steps)
+    gauss = np.exp(-Delta**2/(2*delta2))
+    cosine = np.cos(-Omega*tau0 + (1-Omega*gain)*Delta)
+    
+    S = (2*pi*delta2)**(-1/2)*cosine*gauss
+    
+    return L*np.sum(S) / steps
+
+
+# COSINE AND SINE POWER GAUSSIAN TERMS
+
+def cos_xN_gauss(t, N, delta2, L=pi, steps=50):
+    '''
+    Returns an approximate integral of cos(tx)*x^N rho(x) from 0 to pi.
+    '''
+    
+    Delta = np.linspace(0, L, num=steps)
+    gauss = np.exp(-Delta**2/(2*delta2))
+    
+    S = (2*pi*delta2)**(-1/2)*np.cos(t*Delta)*Delta**N*gauss
+    
+    return L*np.sum(S) / steps
+
+
+def sin_xN_gauss(t, N, delta2, L=pi, steps=50):
+    '''
+    Returns an approximate integral of sin(tx)*x^N rho(x) from 0 to L.
+    '''
+    
+    Delta = np.linspace(0, L, num=steps)
+    gauss = np.exp(-Delta**2/(2*delta2))
+    
+    S = (2*pi*delta2)**(-1/2)*np.sin(t*Delta)*Delta**N*gauss
+    
+    return L*np.sum(S) / steps
+
+
+# COSINE AND SINE POWER GAUSSIAN TERMS (ANALYTIC EXPANSION)
+
+def trig_power_gauss1(t, n, delta2):
+    '''
+    Returns the analytic term for the integral cos(tx)*x^(2k)*rho(x) or
+    sin(tx)*x^(2k+1)*rho(x), where n = 2k or n = 2k+1, from 0 to L.
+    '''
+    
+    # Use hermite polynomials
+    H_n = special.hermite(n)
+    
+    # Convert to probabilist:
+    H_e = lambda x: 2**(-n/2) * H_n(x/np.sqrt(2))
+    
+    # Return the expression
+    dchar_dt = lambda y: H_e(y) * np.exp(-y**2/2) / 2
+    
+    delta = np.sqrt(delta2)
+    sign = (-1)**(n - math.ceil(n/2))
+    return sign * delta**n * dchar_dt(np.sqrt(delta2)*t)
+
+
+def trig_power_gauss2(t, n, delta2, deg=2):
+    '''
+    Returns the analytic power series for the integral cos(tx)*x^(2k)*rho(x) or
+    sin(tx)*x^(2k+1)*rho(x), where n = 2k or n = 2k+1, from 0 to L, up to degree
+    deg.
+    '''
+    
+    S = 0
+    delta = np.sqrt(delta2)
+    k = math.ceil((n-1)/2)
+    while (2*k+1-n) <= deg:
+        term = (-1)**k * t**(2*k+1-n) * delta**(2*k+1) / misc.factorial2(2*k+1)
+        term *= deriv_fac(2*k+1,n)
+        S += term
+        k += 1
+    
+    sign = (-1)**(math.floor(n/2))
+    return sign * (np.sqrt(2*pi)**-1) * S
+
+
+# POWER SERIES
+def sin_gauss_asy_series(t, delta2, N):
+    '''
+    Returns the asympototic expansion of the sine folded Gaussian with variance
+    delta2, by taking the power series of sine up to degree N.
+    '''
+    
+    S = 0
+    delta = np.sqrt(delta2)
+    for k in range(N+1):
+        S += (-1)**k * (t*delta)**(2*k+1) / misc.factorial2(2*k+1)
+    
+    return (np.sqrt(2*pi))**-1 * S
+
+
+def exp_power_series(z, N):
+    '''
+    Returns the power series at z, summing up to the Nth degree.
+    '''
+    
+    S = 0
+    for k in range(N+1):
+        S += z**k / misc.factorial(k)
+    
+    return S
+
+
 def powers(x, M):
     '''
     Returns an array of all powers of x up to degree M.
     '''
     
     return np.array([x**n for n in range(M+1)])
+
+
+def deriv_fac(n, k):
+    '''
+    Returns the coefficient n! / (n-k)!, as the result of differentiating an
+    power k times.
+    '''
+    
+    M = 1
+    for i in range(k):
+        M *= (n-i)
+    
+    return M
 
 
 # MATRICES
@@ -303,14 +520,8 @@ def M3(N):
 
     
 if __name__ == '__main__':
-    # N = 900
-    # a = np.random.random(size=(N,N)) + 1j*np.random.random(size=(N,N))
-    # d = linalg.slogdet(a)
-    
-    # X = (2+1j)*np.eye(2)
-    # d = linalg.slogdet(X)
-    
-    # slogdet computes the log norm of the complex determinant.
-    # First complex value is the normalized determinant (sign)
-    delta2 = 1**2
-    s = sine_fold(delta2)
+    t = 10
+    n = 3
+    delta2 = 0.1**2
+    deg = 3
+    S = trig_power_gauss2(t, n, delta2, deg=2)
