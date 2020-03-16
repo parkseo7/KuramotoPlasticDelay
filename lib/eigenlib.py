@@ -229,10 +229,31 @@ def eig_infty_scale(z, Omega, delta2, param, deg=2, R=1, L=pi, steps=100):
     
     return RS
 
+
+def eig_infty_poly(deg, Omega, delta2, param, R=1, L=pi, steps=100):
+    '''
+    Returns an array of coefficients of lambda**n of the roots of the expanded
+    polynomial for eigenvalues, with taus = 0. To be used with np.root.
+    '''    
+    
+    if delta2 < 1e-10:
+        return np.array([1,0])
+    
+    else:
+        (coeffs, taus, I_0) = eig_infty_terms(deg, Omega, delta2, param, R=R, L=L, steps=steps)
+        
+        poly_coeffs = coeffs.copy()
+        poly_coeffs[0] += -I_0
+        poly_coeffs[1] += -1
+        
+        return np.flip(poly_coeffs,0)
+    
+    
 def eig_infty_terms(deg, Omega, delta2, param, R=1, L=pi, steps=100):
     '''
     Returns an array of coefficients of lambda**n of the asymptotically expanded integral 
     for lambda. To be used as a root equation for N-limit eigenvalues at (Omega, delta2).
+    Here delta2 > 0.
     '''
     
     # Parameters
@@ -256,6 +277,7 @@ def eig_infty_coeff(n, Omega, delta2, param, R=1, L=pi, steps=100):
     '''
     Returns the coefficient of lambda**n of the asymptotically expanded integral 
     for lambda. To be used as a root equation for N-limit eigenvalues at (Omega, delta2).
+    Here delta2 > 0.
     '''
     
     # Parameters
