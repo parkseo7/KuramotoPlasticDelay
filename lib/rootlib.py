@@ -60,3 +60,18 @@ def root_on_interval(func, a, b, steps=20):
     all_root_array = np.concatenate((zero_array, root_array))
     
     return all_root_array
+
+
+def root_on_array(f_array):
+    '''
+    Given an array f_arr, returns all indices i such that f_arr[i] and f_arr[i+1]
+    are different signs.
+    '''
+    
+    N = f_array.size
+    f_array1 = f_array[:N-1]
+    f_array2 = f_array[1:]
+    
+    ind_array = np.argwhere(f_array1*f_array2 < 0)
+    
+    return ind_array

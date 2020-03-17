@@ -1,5 +1,5 @@
 % Set up directory (check if it exists)
-foldername = 'matlabND_multi_N30_4' ;
+foldername = 'matlab_fig5' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 
@@ -16,8 +16,8 @@ par.g = 1.5 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 80 ;
-par.gain = 60;
+par.tf = 100 ;
+par.gain = 50;
 par.tau0 = 0.1;
 
 N = par.N;
@@ -26,17 +26,15 @@ omega0 = par.w0;
 tau0 = par.tau0;
 tf = par.tf ;
 g = par.g ;
-        
-% Varying parameters
-L_std = 1.0;
-n_std = 4;
-L_freq = 1.0;
-n_freq = 4;
-std_arr = L_std*rand(1,n_std);% (0.1:0.2:1)*pi/4 ;
-freq_arr = L_freq*(rand(1,n_freq) - 0.5); % linspace(omega0-L_freq,omega0+L_freq,2);
-freq_arr = par.w0 + freq_arr;
 
-total = numel(std_arr)*numel(freq_arr) ;
+% Varying parameters
+n_trials = 25;
+L_std = 1.0;
+L_freq = 0.25; % Multiple of g
+std_arr = L_std*rand(1,n_trials);
+freq_arr = rand(1,n_trials) - 0.5;
+
+freq_arr = par.w0 + L_freq * 2 * g * freq_arr;
 
 % DDE options
 ddeopts = ddeset() ;
@@ -46,45 +44,41 @@ ddeopts = ddeset() ;
 f = waitbar(0,'Starting trials...') ;
 
 % MAIN LOOP
-waitk = 0 ;
-for std = std_arr
-    for freq = freq_arr
+for k = 1:n_trials
+    std = std_arr(k);
+    freq = freq_arr(k);
         
-        % Waitbar
-        waittext = ['std = ' num2str(std) ', freq = ' num2str(freq)] ;
-        waitprog = waitk / total ;
-        waitbar(waitprog, f, waittext) ;
-       
-        % History function
-        T = sqrt(3)*std;
-        phases = T*rand(1,N) - T/2;
-        init_freq = freq;
-        init_freqs = init_freq*ones(1,N);
+    % Waitbar
+    waittext = ['trial: ' num2str(k) ', std = ' num2str(std) ', freq = ' num2str(freq)] ;
+    waitprog = k / n_trials ;
+    waitbar(waitprog, f, waittext) ;
 
-        par.hist = IVPhistory(init_freqs, phases, par);
+    % History function
+    T = sqrt(3)*std;
+    phases = T*rand(1,N) - T/2;
+    init_freq = freq;
+    init_freqs = init_freq*ones(1,N);
 
-        % Solve model
-        sol = solvemodel(par, ddeopts) ;
+    par.hist = IVPhistory(init_freqs, phases, par);
 
-        % Export (transpose all matrices)
-        t = sol.x.' ;
-        y = sol.y(1:N,:).' ;
-        yp = sol.yp(1:N,:).' ;
+    % Solve model
+    sol = solvemodel(par, ddeopts) ;
 
-        tau = sol.y(N+1:end,:).' ;
-        taup = sol.yp(N+1:end,:).' ;
-        
-        phi0 = phases;
-        
-        % Save file
-        filename = ['sol_num' num2str(waitk) '.mat'] ;
-        dir_file = fullfile(dir_folder, filename) ;
-        save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'N', 'gain', 'omega0', ...
-            'tau0', 'phi0', 'g', 'tf', 'std', 'init_freq')
-        
-        % Wait progress
-        waitk = waitk + 1 ;
-    end
+    % Export (transpose all matrices)
+    t = sol.x.' ;
+    y = sol.y(1:N,:).' ;
+    yp = sol.yp(1:N,:).' ;
+
+    tau = sol.y(N+1:end,:).' ;
+    taup = sol.yp(N+1:end,:).' ;
+
+    phi0 = phases;
+
+    % Save file
+    filename = ['sol_num' num2str(k) '.mat'] ;
+    dir_file = fullfile(dir_folder, filename) ;
+    save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'N', 'gain', 'omega0', ...
+        'tau0', 'phi0', 'g', 'tf', 'std', 'init_freq')
 end
 
 close(f)

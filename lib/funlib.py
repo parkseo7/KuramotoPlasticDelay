@@ -345,6 +345,29 @@ def abs_diff(poly_array):
     return np.abs(P)**2 - np.abs(Q)**2
 
 
+def sign_log(x):
+    '''
+    Given any float x, returns the sign log scale of x.
+    '''
+    
+    return np.sign(x)*np.log(1 + np.abs(x))
+
+
+def sign_log_inv(y):
+    '''
+    Given any float y, returns the inverse of the sign log scale.
+    '''
+    
+    if y > 0:
+        x = np.exp(y) - 1
+    elif y < 0:
+        x = 1 - np.exp(-y)
+    else:
+        x = 0
+    
+    return x
+
+
 # UNUSED
 def eig2D_poly(z, Omega, Delta, tau0, param):
     '''
