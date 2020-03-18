@@ -1,15 +1,15 @@
 % Export directory
-foldername = 'matlabND_N30' ;
-trial = 2;
+foldername = 'matlab_fig5_solo' ;
+trial = 6;
 
 % Parameters
 par = struct ;
 
-par.N = 30 ;
+par.N = 50 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.tau0 = 0.1 ;
-par.gain = 50 ;
+par.gain = 100 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
@@ -18,7 +18,7 @@ par.tf = 90 ;
 % History function
 N = par.N;
 std = 0.75;
-init_freq = 0.8;
+init_freq = par.w0;
 init_freqs = init_freq*ones(1,N);
 
 T = sqrt(3)*std;

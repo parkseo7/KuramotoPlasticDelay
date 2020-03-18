@@ -28,7 +28,7 @@ tf = par.tf ;
 g = par.g ;
 
 % Varying parameters
-n_trials = 25;
+n_trials = 2;
 L_std = 1.0;
 L_freq = 0.25; % Multiple of g
 std_arr = L_std*rand(1,n_trials);

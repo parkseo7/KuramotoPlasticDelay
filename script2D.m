@@ -1,4 +1,4 @@
-foldername = 'matlab2D_3' ;
+foldername = 'matlab_fig5_solo' ;
 num = 2;
 
 % Parameters
@@ -7,12 +7,11 @@ par = struct ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.init_freq = 1.0;
-par.Delta0 = pi/2;
 
 par.t0 = 0 ;
-par.tf = 1000 ;
+par.tf = 100 ;
 
-par.gain = 30 ;
+par.gain = 80 ;
 par.alphatau = 1.0 ;
 par.tau0 = 0.1;
 
