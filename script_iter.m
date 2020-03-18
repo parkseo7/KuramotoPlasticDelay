@@ -17,7 +17,7 @@ par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
 par.tf = 100 ;
-par.gain = 50;
+par.gain = 80;
 par.tau0 = 0.1;
 
 N = par.N;

@@ -36,6 +36,24 @@ def weight_avg(X, Y, asy):
     return L_avg
 
 
+def mod_pi(X):
+    '''
+    Given an array of values X, returns a modded version of X, such that all
+    elements of X are in interval [-pi, pi].
+    '''
+    
+    X_mod = np.mod(X, 2*pi)
+    
+    # Change all negatives:
+    is_pi = (X_mod < pi)
+    is_2pi = (X_mod > pi)
+    
+    X_mod2 = -(X_mod - pi)
+    Y = X_mod*is_pi + X_mod2*is_2pi
+    
+    return Y
+
+
 if __name__ == '__main__':
     pass
 

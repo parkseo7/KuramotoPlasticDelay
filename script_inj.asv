@@ -1,19 +1,20 @@
 % Export directory
-foldername = 'matlab_fig5_solo' ;
-trial = 6;
+foldername = 'matlab_fig6' ;
+trial = 5;
 
 % Parameters
 par = struct ;
 
-par.N = 50 ;
+par.N = 30 ; % 50 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
-par.tau0 = 0.1 ;
-par.gain = 80 ;
+par.tau0 = pi/2 +  ;
+par.gain = 0 ; % 80 ;
 par.alphatau = 1.0 ;
-par.inj = 0.0 ;
+par.inj = 0.9 ;
+par.t_inj = 150;
 par.t0 = 0 ;
-par.tf = 90 ;
+par.tf = 300 ;
 
 % History function
 N = par.N;
@@ -31,7 +32,7 @@ ddeopts = ddeset() ;
 % ddeopts.MaxStep = 1.0 ;
 
 % Solve model
-sol = solvemodel(par, ddeopts) ;
+sol = solvemodelinj(par, ddeopts) ;
 
 % Export (transpose all matrices)
 N = par.N;
@@ -48,6 +49,9 @@ omega0 = par.w0 ;
 tf = par.tf ;
 g = par.g ;
 tau0 = par.tau0;
+A = sol.A_inj;
+inj = par.inj;
+t_inj = par.t_inj;
 
 % Set up directory (check if it exists)
 cwd = pwd ;
@@ -61,4 +65,4 @@ end
 filename = ['sol_' num2str(trial) '.mat'] ;
 dir_file = fullfile(dir_folder, filename) ;
 save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'tau0', 'N', 'gain', 'omega0', ...
-    'T', 'g', 'tf', 'phi0', 'std', 'init_freq')
+    'T', 'g', 'tf', 'phi0', 'std', 'init_freq', 'A', 'inj', 't_inj')
