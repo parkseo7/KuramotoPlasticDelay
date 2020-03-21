@@ -1,6 +1,6 @@
 % Export directory
 foldername = 'matlab_fig6' ;
-trial = 6;
+trial = 8;
 
 % Parameters
 par = struct ;
@@ -8,7 +8,7 @@ par = struct ;
 par.N = 30 ; % 50 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
-par.tau0 = pi/2 + 0.2 ;
+par.tau0 = 2.0 ;
 par.gain = 50 ; % 80 ;
 par.alphatau = 1.0 ;
 par.inj = 0.9 ;
@@ -18,12 +18,12 @@ par.tf = 300 ;
 
 % History function
 N = par.N;
-std = 0.75;
+std = 0.5;
 init_freq = par.w0;
 init_freqs = init_freq*ones(1,N);
 
 T = sqrt(3)*std;
-phases = T*rand(1,N) - T/2;
+phases = T*(0:N-1)/N - T/2; % T*rand(1,N) - T/2;
 
 par.hist = IVPhistory(init_freqs, phases, par);
 
@@ -42,6 +42,7 @@ yp = sol.yp(1:N,:).' ;
 
 tau = sol.y(N+1:end,:).' ;
 taup = sol.yp(N+1:end,:).' ;
+tau_top = sol.tau_top.';
 phi0 = phases;
 
 gain = par.gain ;
@@ -49,7 +50,7 @@ omega0 = par.w0 ;
 tf = par.tf ;
 g = par.g ;
 tau0 = par.tau0;
-A = sol.A_inj;
+A = sol.A_inj.';
 inj = par.inj;
 t_inj = par.t_inj;
 
@@ -64,5 +65,5 @@ end
 % Save file
 filename = ['sol_' num2str(trial) '.mat'] ;
 dir_file = fullfile(dir_folder, filename) ;
-save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'tau0', 'N', 'gain', 'omega0', ...
+save(dir_file, 't', 'y', 'yp', 'tau', 'taup', 'tau0', 'tau_top', 'N', 'gain', 'omega0', ...
     'T', 'g', 'tf', 'phi0', 'std', 'init_freq', 'A', 'inj', 't_inj')

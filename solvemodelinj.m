@@ -35,8 +35,12 @@ function sol = solvemodelinj(par, ddeopts)
     sol = ddesd(kuraf, tauf, hist_lin, [t0,tf], ddeopts) ;
     sol.tau0 = tau0 ;
     sol.A_inj = a;
-   
+    
+    [~, tau_asy, ~] = unpackX(sol.y(:,end));
+    sol.tau_top = a.*tau_asy;
+    
 end
+
 
 function X = packX( theta, tau )
     X = [ theta(:) ; tau(:) ];
