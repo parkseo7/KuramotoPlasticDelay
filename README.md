@@ -7,7 +7,11 @@ The code to generate all plots in the manuscript 'Synchronization and resilience
 
 # Figures
 
-The Matlab scripts are able to generate and export numerical arrays as .mat files. Each Jupyter Notebook file contains the exact script that was used to generate each plot in the manuscript. Cells in the scripts are able to generate and export the array files used, which are stored in the 'data' folder. Other cells in the scripts import and process the array files to plot the relevant graphs. We provide a quick guide in how to reproduce each figure as shown in the manuscript:
+The Matlab scripts are able to generate and export numerical arrays as .mat files. Each Jupyter Notebook file contains the exact script that was used to generate each plot in the manuscript. Cells in the scripts are able to generate and export the array files used, which are stored in the 'data' folder. 
+
+**Due to the size of the numerical arrays produced, all arrays used for the manuscript is available by the author upon request**.
+
+Other cells in the scripts import and process the array files to plot the relevant graphs. We provide a quick guide in how to reproduce each figure as shown in the manuscript:
 
 ## Figure 2
 
