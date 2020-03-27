@@ -1,6 +1,6 @@
 # Ignore all data files
 data/*
+data_unused/*
 
 # Except
-!data/matlab1
 !data/export

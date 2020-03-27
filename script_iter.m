@@ -1,5 +1,5 @@
 % Set up directory (check if it exists)
-foldername = 'matlab_fig5_N50' ;
+foldername = 'matlab_fig5' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 
@@ -38,6 +38,7 @@ freq_arr = par.w0 + L_freq * 2 * g * freq_arr;
 
 % DDE options
 ddeopts = ddeset() ;
+ddeopts.OutputFcn = @ddewbar;
 % ddeopts.MaxStep = 1.0 ;
 
 % Wait bar

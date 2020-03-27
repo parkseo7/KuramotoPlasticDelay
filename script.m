@@ -1,6 +1,6 @@
 % Export directory
-foldername = 'matlab_fig5_solo' ;
-trial = 6;
+foldername = 'matlab_ND' ;
+trial = 1;
 
 % Parameters
 par = struct ;
@@ -28,6 +28,7 @@ par.hist = IVPhistory(init_freqs, phases, par);
 
 % DDE options
 ddeopts = ddeset() ;
+ddeopts.OutputFcn = @ddewbar;
 % ddeopts.MaxStep = 1.0 ;
 
 % Solve model

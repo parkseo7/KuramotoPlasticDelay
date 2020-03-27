@@ -39,6 +39,7 @@ n_trials = size(inj_list,2);
 
 % DDE options
 ddeopts = ddeset() ;
+ddeopts.OutputFcn = @ddewbar;
 % ddeopts.MaxStep = 1.0 ;
 
 % Wait bar
