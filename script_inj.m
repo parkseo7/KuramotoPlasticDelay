@@ -1,34 +1,36 @@
 % Export directory
-foldername = 'matlab_fig6' ;
-trial = 8;
+foldername = 'matlab_fig7_p' ;
+trial = 5; % Increase this
 
 % Parameters
 par = struct ;
 
-par.N = 30 ; % 50 ;
+par.N = 50 ; % 50 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.tau0 = 2.0 ;
-par.gain = 50 ; % 80 ;
+par.gain = 80 ; % 80 ;
 par.alphatau = 1.0 ;
-par.inj = 0.9 ;
-par.t_inj = 150;
+par.inj = 0.4 ; % Increase this
+par.t_inj = 160;
 par.t0 = 0 ;
-par.tf = 300 ;
+par.tf = 320 ;
 
 % History function
 N = par.N;
-std = 0.5;
+std = 0.20;
 init_freq = par.w0;
+
 init_freqs = init_freq*ones(1,N);
 
 T = sqrt(3)*std;
-phases = T*(0:N-1)/N - T/2; % T*rand(1,N) - T/2;
+phases = T*rand(1,N) - T/2;
 
 par.hist = IVPhistory(init_freqs, phases, par);
 
 % DDE options
 ddeopts = ddeset() ;
+ddeopts.OutputFcn = @ddewbar;
 % ddeopts.MaxStep = 1.0 ;
 
 % Solve model
