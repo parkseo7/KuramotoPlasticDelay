@@ -40,7 +40,7 @@ function dXdt = modelrhs(t,X,Z,omega,g,kappa,alphar,tau0,epsilon)
     thetadelay = [Z(2,1); Z(1,2)];
     dthetadt = omega + g*sin(thetadelay - theta);
     % dtaudt = alphar*posind(tau).*( -(tau - tau0) + kappa*Delta);
-    dtaudt = alphar*posind(tau,epsilon) .* ( -(tau - tau0) + kappa*sin(Delta));
+    dtaudt = alphar*posind(tau,epsilon).*( -(tau - tau0) + kappa*sin(Delta));
     dXdt = packX( dthetadt, dtaudt );
 end
 
@@ -59,11 +59,9 @@ tau_inds = find((tau > 0).*(tau < epsilon));
 % For each index in x_inds, replace x_pos:
 MOL = @(t) exp(-(t-1).^-2).*exp(-(t+1).^-2);
 MOL2 = @(v) MOL(-1 + 2*v/epsilon);
-if numel(tau_inds) > 0
-    INT = integral(@(s) MOL2(s), 0, epsilon);
-    for i = 1:numel(tau_inds)
-        u(tau_inds(i)) = integral(@(s) MOL2(s), 0, tau(tau_inds(i))) / INT;
-    end
-end
+INT = integral(@(s) MOL2(s), 0, epsilon);
 
+for i = 1:numel(tau_inds)
+    u(tau_inds(i)) = integral(@(s) MOL2(s), 0, tau(tau_inds(i))) / INT;
+end
 end

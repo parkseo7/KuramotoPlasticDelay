@@ -1,5 +1,5 @@
 % Export directory
-foldername = 'matlab_fig7_np' ;
+foldername = 'matlab_fig7_p' ;
 
 % Set up directory (check if it exists)
 cwd = pwd ;
@@ -12,15 +12,17 @@ end
 % Parameters
 par = struct ;
 
-par.N = 30 ; % 50 ;
+par.N = 50 ; % 50 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.tau0 = 2.0 ;
-par.gain = 0 ; % 80 ;
+par.gain = 80 ; % 80 ;
 par.alphatau = 1.0 ;
-par.t_inj = 150;
+par.t_inj = 80;
 par.t0 = 0 ;
-par.tf = 300 ;
+par.tf = 160 ;
+par.A = ones(par.N);
+par.epsilon = 0.01;
 
 % History function
 N = par.N;
@@ -39,6 +41,7 @@ n_trials = size(inj_list,2);
 
 % DDE options
 ddeopts = ddeset() ;
+ddeopts.NormControl = 'on';
 ddeopts.OutputFcn = @ddewbar;
 % ddeopts.MaxStep = 1.0 ;
 

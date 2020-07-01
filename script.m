@@ -1,5 +1,8 @@
+% Clear
+clear();
+
 % Export directory
-foldername = 'matlab_ND' ;
+foldername = 'matlab_ND5' ;
 trial = 1;
 
 % Parameters
@@ -13,12 +16,14 @@ par.gain = 80 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 90 ;
+par.tf = 100 ;
+par.epsilon = 0.01;
+par.A = ones(par.N, 'double');
 
 % History function
 N = par.N;
-std = 0.75;
-init_freq = par.w0;
+std = 0.35;
+init_freq = 0.8 * par.w0;
 init_freqs = init_freq*ones(1,N);
 
 T = sqrt(3)*std;
@@ -28,6 +33,7 @@ par.hist = IVPhistory(init_freqs, phases, par);
 
 % DDE options
 ddeopts = ddeset() ;
+ddeopts.NormControl = 'on';
 ddeopts.OutputFcn = @ddewbar;
 % ddeopts.MaxStep = 1.0 ;
 

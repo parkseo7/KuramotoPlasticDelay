@@ -18,7 +18,7 @@ phi0 = @(t) t*freqs + phases;
 
 % Use Kuramoto DDE to obtain derivatives at t = 0:
 phi_tau0 = phases - freqs*tau0;
-dphidt = w0 + (g/N)*sum(A.*sin(bsxfun(@minus, phi_tau0, phases.')),2).';
+dphidt = w0 + (g/N) *  sum(A .* sin(phi_tau0 - phases.'),2).';
 
 % Hermite interpolation
 phi_int = @(t) cubic_int(t, -tau0, phi_tau0.', 0, phases.', freqs.', dphidt.').';
@@ -36,7 +36,8 @@ end
 
 end
 
-function [yint,ypint] = cubic_int(tint,t,y,tnew,ynew,yp,ypnew)
+
+function yint = cubic_int(tint,t,y,tnew,ynew,yp,ypnew)
 
 h = tnew - t;
 s = (tint - t)/h;
@@ -46,8 +47,6 @@ slope = (ynew - y)/h;
 c = 3*slope - 2*yp - ypnew;
 d = yp + ypnew - 2*slope;
 yint = y(:,ones(size(tint))) + (h*d*s3 + h*c*s2 + h*yp*s);        
-if nargout > 1
-  ypint = yp(:,ones(size(tint))) + (3*d*s2 + 2*c*s);  
-end   
 
-end
+end    
+

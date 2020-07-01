@@ -1,6 +1,6 @@
 % Export directory
-foldername = 'matlab_fig7_p' ;
-trial = 5; % Increase this
+foldername = 'matlab_fig7' ;
+trial = 3; % Increase this
 
 % Parameters
 par = struct ;
@@ -9,12 +9,14 @@ par.N = 50 ; % 50 ;
 par.w0 = 1.0 ;
 par.g = 1.5 ;
 par.tau0 = 2.0 ;
-par.gain = 80 ; % 80 ;
+par.gain = 0; % 80 ;
 par.alphatau = 1.0 ;
-par.inj = 0.4 ; % Increase this
-par.t_inj = 160;
+par.inj = 0.2 ; % Increase this
+par.t_inj = 80;
 par.t0 = 0 ;
-par.tf = 320 ;
+par.tf = 160 ;
+par.epsilon = 0.01;
+par.A = ones(par.N);
 
 % History function
 N = par.N;
@@ -30,6 +32,7 @@ par.hist = IVPhistory(init_freqs, phases, par);
 
 % DDE options
 ddeopts = ddeset() ;
+ddeopts.NormControl = 'on';
 ddeopts.OutputFcn = @ddewbar;
 % ddeopts.MaxStep = 1.0 ;
 
@@ -58,7 +61,7 @@ t_inj = par.t_inj;
 
 % Set up directory (check if it exists)
 cwd = pwd ;
-dir_folder = fullfile(cwd, 'data', foldername) ;
+dir_folder = fullfile(cwd, 'data2', foldername) ;
 
 if ~exist(dir_folder, 'dir')
    mkdir(dir_folder)

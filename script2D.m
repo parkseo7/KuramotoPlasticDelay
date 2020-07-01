@@ -1,5 +1,5 @@
-foldername = 'matlab_fig5_solo' ;
-num = 2;
+foldername = 'matlab_fig4' ;
+num = 1;
 
 % Parameters
 par = struct ;
@@ -47,7 +47,7 @@ tf = par.tf ;
 
 % Set up directory (check if it exists)
 cwd = pwd ;
-dir_folder = fullfile(cwd, 'data', foldername) ;
+dir_folder = fullfile(cwd, 'data2', foldername) ;
 
 if ~exist(dir_folder, 'dir')
    mkdir(dir_folder)

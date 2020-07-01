@@ -1,5 +1,5 @@
 % Set up directory (check if it exists)
-foldername = 'matlab_fig4' ;
+foldername = 'matlab_fig4_2' ;
 cwd = pwd ;
 dir_folder = fullfile(cwd, 'data', foldername) ;
 
@@ -14,9 +14,8 @@ par.g = 1.5 ;
 par.t0 = 0 ;
 par.tf = 200 ;
 par.gain = 30 ;
-par.alphatau = 1.0 ;
+par.alphatau = 0.5 ;
 par.tau0 = 0.1;
-par.epsilon = 0.01;
 par.A = [0 1; 1 0];
 
 % Export names

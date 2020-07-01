@@ -109,7 +109,8 @@ def Omega2D(Omega, param):
     Delta_fun = lambda u: np.arcsin((w0 - u)/g)
     
     # Fixed-point equation for Omega:
-    Omega_fun = lambda u: u - w0 - g*np.sin(-u*tau0 + (1 - gain*u)*Delta_fun(u))
+    # Omega_fun = lambda u: u - w0 - g*np.sin(-u*tau0 + (1 - gain*u)*Delta_fun(u))
+    Omega_fun = lambda u: u - w0 - g*np.sin(-u*(tau0 + gain*(w0 - u)/g) + Delta_fun(u))
     
     return Omega_fun(Omega), Delta_fun(Omega)
 
@@ -147,14 +148,15 @@ def eig2D_det(z, Omega, Delta, param):
     tau0 = param['tau0']
     
     # Defined parameters
-    k = Omega*gain
-    C_12 = g*np.cos(-Omega*tau0 + (1 - k)*Delta)
+    k = Omega*gain*np.cos(Delta)
+    tauE = tau0 + gain*Delta
+    C_12 = g*np.cos(-Omega*tauE + Delta)
     C_21 = g*np.cos(Delta)
     
     # Polynomials
     P = (z*(z+1) + C_12*(z+1-k))*(z+C_21) + C_12*C_21*k
     Q = -C_12*C_21*(z+1)
-    E = np.exp(-z*(tau0 + gain*Delta))
+    E = np.exp(-z*(tau0 + gain*np.sin(Delta)))
     
     # return np.array([P, Q, E, P + Q*E, P + Q])
     return P + Q*E
@@ -173,8 +175,9 @@ def eig2D_cubic(Omega, Delta, param):
     tau0 = param['tau0']
     
     # Defined parameters
-    k = Omega*gain
-    C_12 = g*np.cos(-Omega*tau0 + (1 - k)*Delta)
+    k = Omega*gain*np.cos(Delta)
+    tauE = tau0 + gain*Delta
+    C_12 = g*np.cos(-Omega*tauE + Delta)
     C_21 = g*np.cos(Delta)
     C = C_12 + C_21
     C_2 = C_12*C_21

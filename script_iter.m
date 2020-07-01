@@ -16,9 +16,11 @@ par.g = 1.5 ;
 par.alphatau = 1.0 ;
 par.inj = 0.0 ;
 par.t0 = 0 ;
-par.tf = 100 ;
-par.gain = 80;
+par.tf = 50 ;
+par.gain = 100;
 par.tau0 = 0.1;
+par.epsilon = 0.01;
+par.A = ones(par.N);
 
 N = par.N;
 gain = par.gain;
@@ -28,8 +30,8 @@ tf = par.tf ;
 g = par.g ;
 
 % Varying parameters
-n_trials = 10;
-L_std = 1.0;
+n_trials = 1; % Increase to 10
+L_std = 0.5;
 L_freq = 0.25; % Multiple of g
 std_arr = L_std*rand(1,n_trials);
 freq_arr = rand(1,n_trials) - 0.5;
@@ -38,6 +40,7 @@ freq_arr = par.w0 + L_freq * 2 * g * freq_arr;
 
 % DDE options
 ddeopts = ddeset() ;
+ddeopts.NormControl = 'on';
 ddeopts.OutputFcn = @ddewbar;
 % ddeopts.MaxStep = 1.0 ;
 
